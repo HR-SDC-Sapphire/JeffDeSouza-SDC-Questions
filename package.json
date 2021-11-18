@@ -1,0 +1,25 @@
+{
+  "name": "jeffdesouza-sdc-questions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon server/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HR-SDC-Sapphire/JeffDeSouza-SDC-Questions.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HR-SDC-Sapphire/JeffDeSouza-SDC-Questions/issues"
+  },
+  "homepage": "https://github.com/HR-SDC-Sapphire/JeffDeSouza-SDC-Questions#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^6.0.13",
+    "node": "^17.1.0",
+    "nodemon": "^2.0.15"
+  }
+}
