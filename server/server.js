@@ -9,30 +9,28 @@ mongoose.connect('mongodb://localhost:27017/test', ()=> {
   console.log('connected to db!');
 })
 
-app.get('/', (req, res) => {
-  console.log('request received');
-  res.send('home!');
+app.get('/', async (req, res) => {
+  try {
+    const posts = await Test.find();
+    res.json(posts);
+  } catch (err) {
+    res.json({message: err})
+  }
 });
 
-app.post('/insert', (req, res) => {
+app.post('/insert', async (req, res) => {
   var body = req.body;
   const test1 = new Test({
     title: req.body.title,
     description: req.body.description
   });
 
-  test1.save()
-  .then((data)=> {
-    console.log('data is', data);
+  try {
+    const data = await test1.save();
     res.json(data);
-  })
-  .catch((err)=> {
-    res.status(200).send('there was an error', err);
-  })
-
-  console.log('insert received', body);
-  //res.send('insert!');
+  } catch(err) {
+    res.json({message: err})
+  }
 });
-
 
 app.listen(3000);
