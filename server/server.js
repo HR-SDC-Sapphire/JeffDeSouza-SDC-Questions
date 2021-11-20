@@ -29,6 +29,7 @@ app.get('/', async (req, res) => {
 var loadFileContents = function() {
   var loc = path.join(__dirname, './data/testQuestions.csv')
   var stream = fs.createReadStream(loc)
+  var brokenQuestions = [];
     .pipe(es.split())
     .pipe(es.mapSync((line)=> {
       stream.pause();
@@ -37,6 +38,8 @@ var loadFileContents = function() {
       //entries.forEach((entry, index)=> console.log('entry #', index, entry))
       if (Number.isInteger(parseInt(entries[0]))) {
         insertQuestion(entries);
+      } else {
+        brokenQuestions.push(entries)
       }
       stream.resume();
     })
