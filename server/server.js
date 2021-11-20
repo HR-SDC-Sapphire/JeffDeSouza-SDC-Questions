@@ -4,11 +4,16 @@ const app = express();
 app.use(bodyParser.json())
 const mongoose = require('mongoose');
 const Test = require('../database/models/test.js')
+const Question = require('../database/models/questions.js')
 var fs = require('fs')
 var es = require('event-stream');
 var path = require('path');
+const PORT = 3000;
 
-mongoose.connect('mongodb://localhost:27017/test', ()=> {
+console.log('SOF.')
+//csvfast??
+
+mongoose.connect('mongodb://localhost:27017/allQuestions', ()=> {
   console.log('connected to the db!');
 })
 
@@ -21,26 +26,79 @@ app.get('/', async (req, res) => {
   }
 });
 
-//spend some time tomorrow learning why this works
-var loadFileContents() {
+var loadFileContents = function() {
   var loc = path.join(__dirname, './data/testQuestions.csv')
-  var s = fs.createReadStream(loc)
-      .pipe(es.split())
-      .pipe(es.mapSync(function(line) {
-          //pause the readstream
-          s.pause();
-          console.log("line:", line);
-          s.resume();
-      })
-      .on('error', function(err) {
-          console.log('Error:', err);
-      })
-      .on('end', function() {
-          console.log('Finish reading.');
-      })
+  var stream = fs.createReadStream(loc)
+    .pipe(es.split())
+    .pipe(es.mapSync((line)=> {
+      stream.pause();
+      // console.log('line:', line);
+      var entries = lineToEntries(line);
+      //entries.forEach((entry, index)=> console.log('entry #', index, entry))
+      if (Number.isInteger(parseInt(entries[0]))) {
+        insertQuestion(entries);
+      }
+      stream.resume();
+    })
+    .on('error', (err)=> {
+      console.log('ERROR!', err);
+    })
+    .on('end', () => {
+      console.log('Finished Reading!');
+    })
   );
 }
+loadFileContents();
 
+var lineToEntries = function(string) {
+  var word = '';
+  var entries = [];
+  for (var k = 0; k < string.length; k++) {
+    var char = string[k];
+    if (char === ',') {
+      entries.push(word);
+      word = '';
+    } else {
+      word += char;
+    }
+  }
+  entries.push(word.trim());
+  return entries;
+}
+
+var insertQuestion = async function(rowEntries) {
+  // entry # 0 id
+  // entry # 1  product_id
+  // entry # 2  body
+  // entry # 3  date_written
+  // entry # 4  asker_name
+  // entry # 5  asker_email
+  // entry # 6  reported
+  // entry # 7  helpful
+
+  //console.log(`should be numbers: [${rowEntries[1]},${rowEntries[0]},${rowEntries[7]}]`)
+
+  var reportedVal = false;
+  if (rowEntries[6]==='true' || rowEntries[6]==='1') {
+    reportedVal = true;
+  }
+  const questionDoc = new Question({
+    product_id: parseInt(rowEntries[1]),
+    question_id: parseInt(rowEntries[0]),
+    question_body:rowEntries[2],
+    question_date: rowEntries[3],
+    asker_name: rowEntries[4],
+    asker_email: rowEntries[5],
+    reported: reportedVal,
+    question_helpfulness: parseInt(rowEntries[7])
+  })
+  try {
+    const data = await questionDoc.save();
+    console.log(data);
+  } catch(err) {
+    console.log('error!!!', err)
+  }
+}
 
 
 app.post('/insert', async (req, res) => {
@@ -58,4 +116,6 @@ app.post('/insert', async (req, res) => {
   }
 });
 
-app.listen(3000);
+
+console.log('EOF.')
+app.listen(PORT, ()=>{console.log(`listening on ${PORT}`)});
