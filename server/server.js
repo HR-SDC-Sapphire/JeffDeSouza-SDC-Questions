@@ -4,9 +4,12 @@ const app = express();
 app.use(bodyParser.json())
 const mongoose = require('mongoose');
 const Test = require('../database/models/test.js')
+var fs = require('fs')
+var es = require('event-stream');
+var path = require('path');
 
 mongoose.connect('mongodb://localhost:27017/test', ()=> {
-  console.log('connected to db!');
+  console.log('connected to the db!');
 })
 
 app.get('/', async (req, res) => {
@@ -17,6 +20,28 @@ app.get('/', async (req, res) => {
     res.json({message: err})
   }
 });
+
+//spend some time tomorrow learning why this works
+var loadFileContents() {
+  var loc = path.join(__dirname, './data/testQuestions.csv')
+  var s = fs.createReadStream(loc)
+      .pipe(es.split())
+      .pipe(es.mapSync(function(line) {
+          //pause the readstream
+          s.pause();
+          console.log("line:", line);
+          s.resume();
+      })
+      .on('error', function(err) {
+          console.log('Error:', err);
+      })
+      .on('end', function() {
+          console.log('Finish reading.');
+      })
+  );
+}
+
+
 
 app.post('/insert', async (req, res) => {
   var body = req.body;
