@@ -56,7 +56,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
           resolve(brokenQuestions);
         })
       );
-    }
+    });
   }
 
 
@@ -86,7 +86,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
           resolve(brokenAnswers);
         })
       );
-    }
+    });
   }
 
 
@@ -116,7 +116,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
           resolve(brokenAnswersPhotos)
         })
       );
-    }
+    });
   }
 
   var lineToEntries = function(string) {
