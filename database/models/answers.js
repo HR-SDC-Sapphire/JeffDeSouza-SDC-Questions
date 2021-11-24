@@ -5,6 +5,7 @@ const answersSchema = new mongoose.Schema({
       type: Number,
       required: true
     },
+    question_id: Number,
     body: String,
     date: String,
     answerer_name: String,

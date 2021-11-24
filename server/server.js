@@ -3,9 +3,10 @@ const bodyParser = require('body-parser')
 const app = express();
 app.use(bodyParser.json())
 const mongoose = require('mongoose');
-const Test = require('../database/models/test.js')
+//const Test = require('../database/models/test.js')
 const Question = require('../database/models/questions.js')
-const Answer = require('../database/models/answers.js')
+const answersSchema = require('../database/models/answers.js')
+const Answer = mongoose.model('answers', answersSchema);
 
 var fs = require('fs')
 var es = require('event-stream');
@@ -30,61 +31,93 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
   });
 
   var loadQuestionFileContents = function() {
-    var loc = path.join(__dirname, './data/testQuestions.csv')
-    var brokenQuestions = [];
-    var stream = fs.createReadStream(loc)
-      .pipe(es.split())
-      .pipe(es.mapSync((line)=> {
-        stream.pause();
-        var entries = lineToEntries(line);
-        if (Number.isInteger(parseInt(entries[0]))) {
-          insertQuestion(entries);
-        } else {
-          brokenQuestions.push(entries)
-        }
-        stream.resume();
-      })
-      .on('error', (err)=> {
-        console.log('ERROR!', err);
-      })
-      .on('end', () => {
-        console.log('Finished Reading Questions!');
-        console.log('Broken Questions were:', brokenQuestions)
-      })
-    );
+    return new Promise((resolve, reject) => {
+      var loc = path.join(__dirname, './data/testQuestions.csv')
+      var brokenQuestions = [];
+      var stream = fs.createReadStream(loc)
+        .pipe(es.split())
+        .pipe(es.mapSync((line)=> {
+          stream.pause();
+          var entries = lineToEntries(line);
+          if (Number.isInteger(parseInt(entries[0]))) {
+            insertQuestion(entries);
+          } else {
+            brokenQuestions.push(entries)
+          }
+          stream.resume();
+        })
+        .on('error', (err)=> {
+          console.log('ERROR!', err);
+          reject(err);
+        })
+        .on('end', () => {
+          console.log('Finished Reading Questions!');
+          console.log('Broken Questions were:', brokenQuestions)
+          resolve(brokenQuestions);
+        })
+      );
+    }
   }
-
 
 
   var loadAnswersFileContents = function() {
-    var loc = path.join(__dirname, './data/testAnswers.csv')
-    var brokenAnswers = [];
-    var stream = fs.createReadStream(loc)
-      .pipe(es.split())
-      .pipe(es.mapSync((line)=> {
-        stream.pause();
-        var entries = lineToEntries(line);
-        if (Number.isInteger(parseInt(entries[0]))) {
-          insertAnswer(entries);
-        } else {
-          brokenAnswers.push(entries)
-        }
-        stream.resume();
-      })
-      .on('error', (err)=> {
-        console.log('ERROR!', err);
-      })
-      .on('end', () => {
-        console.log('Finished Reading Answers!');
-        console.log('Broken Answers were:', brokenAnswers)
-      })
-    );
+    return new Promise((resolve, reject) => {
+      var loc = path.join(__dirname, './data/testAnswers.csv')
+      var brokenAnswers = [];
+      var stream = fs.createReadStream(loc)
+        .pipe(es.split())
+        .pipe(es.mapSync((line)=> {
+          stream.pause();
+          var entries = lineToEntries(line);
+          if (Number.isInteger(parseInt(entries[0]))) {
+            insertAnswer(entries);
+          } else {
+            brokenAnswers.push(entries)
+          }
+          stream.resume();
+        })
+        .on('error', (err)=> {
+          console.log('ERROR!', err);
+          reject(err);
+        })
+        .on('end', () => {
+          console.log('Finished Reading Answers!');
+          console.log('Broken Answers were:', brokenAnswers)
+          resolve(brokenAnswers);
+        })
+      );
+    }
   }
 
 
-
-
-
+  var loadAnswersPhotosFileContents = function() {
+    return new Promise((resolve, reject) => {
+      var loc = path.join(__dirname, './data/testAnswers_photos.csv')
+      var brokenAnswersPhotos = [];
+      var stream = fs.createReadStream(loc)
+        .pipe(es.split())
+        .pipe(es.mapSync((line)=> {
+          stream.pause();
+          var entries = lineToEntries(line);
+          if (Number.isInteger(parseInt(entries[0]))) {
+            insertAnswersPhotos(entries);
+          } else {
+            brokenAnswersPhotos.push(entries)
+          }
+          stream.resume();
+        })
+        .on('error', (err)=> {
+          console.log('ERROR!', err);
+          reject(err);
+        })
+        .on('end', () => {
+          console.log('Finished Reading Answers_photos!');
+          console.log('Broken Answers_photos were:', brokenAnswersPhotos)
+          resolve(brokenAnswersPhotos)
+        })
+      );
+    }
+  }
 
   var lineToEntries = function(string) {
     var word = '';
@@ -124,6 +157,57 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
     return entries;
   }
 
+
+  var insertAnswersPhotos = async function(rowEntries){
+    //rowEntries.forEach((entry, index)=>console.log(`answers entry #${index}: ${entry}`));
+    //id, answer_id, url
+    var aid = rowEntries[1];
+
+    var answers_photo = {
+      id: parseInt(rowEntries[0]),
+      url: rowEntries[2]
+    }
+    //console.log('answer is: ', answer);
+    // entry #0: 1
+    // entry #1: 36
+    // entry #2: "Supposedly suede
+    // entry #2:  but I think its synthetic"
+    // entry #3: "2018-01-17"
+    // entry #4: "sillyguy"
+    // entry #5: "first.last@gmail.com"
+    // entry #6: 0
+    // entry #7: 1
+    try {
+      console.log('trying to find aid:', aid);
+      const foundAnswers = await Answer.find( {id: aid})
+      console.log('answers found: ', foundAnswers)
+      for (var k = 0; k < foundAnswers.length; k++) {
+        foundAnswers[k].photos.push(answers_photo)
+        await foundAnswers[k].save()
+        console.log('saved answer for', foundAnswers[k])
+        var qid = foundAnswers[k].question_id;
+        console.log('SUBQUESTION ID: ', qid);
+        if (qid) {
+          const foundQuestions = await Question.find( {question_id: qid})
+          console.log('sub-Question found', foundQuestions);
+          for (var m = 0; m < foundQuestions.length; m++) {
+            for (var n = 0; n < foundQuestions[m].answers.length; n++) {
+              console.log(`comparing ${aid} to ${foundQuestions[m].answers[n].id}`)
+              if (parseInt(foundQuestions[m].answers[n].id) === parseInt(aid)) {
+                console.log('ANSWER FOUND IN QUESTION!');
+                foundQuestions[m].answers[n].photos.push(answers_photo);
+                await foundQuestions[m].save();
+              }
+            }
+          }
+        } //end if qid
+
+      }
+    } catch(err) {
+      console.log('error!!!', err)
+    }
+  }
+
   var insertAnswer = async function(rowEntries){
     //rowEntries.forEach((entry, index)=>console.log(`answers entry #${index}: ${entry}`));
     var qid = rowEntries[1];
@@ -150,7 +234,19 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
     // entry #5: "first.last@gmail.com"
     // entry #6: 0
     // entry #7: 1
+    const answerDoc = new Answer({
+      id: parseInt(rowEntries[0]),
+      question_id: qid,
+      body: rowEntries[2],
+      date: rowEntries[3],
+      answerer_name: rowEntries[4],
+      answerer_email: rowEntries[5],
+      reported: reportedVal,
+      helpfulness: parseInt(rowEntries[7]),
+    })
     try {
+      const data = await answerDoc.save();
+
       // const data = await questionDoc.save();
       // const data = await questions.findOne({question_id: qid})
       //   .exec(function(err,question) {
@@ -172,7 +268,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         console.log('questions found: ', foundQuestions)
         for (var k = 0; k < foundQuestions.length; k++) {
           foundQuestions[k].answers.push(answer)
-          foundQuestions[k].save()
+          await foundQuestions[k].save()
           console.log('saved answer for', foundQuestions[k])
         }
 
@@ -251,6 +347,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
     try{
       await loadQuestionFileContents();
       await loadAnswersFileContents();
+      await loadAnswersPhotosFileContents();
     }
     catch(err) {
       console.log("ERROR RUNNING", err);
