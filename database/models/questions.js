@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
+const answersSchema = require('./answers.js')
 
-const QuestionsSchema = mongoose.Schema({
+const questionsSchema = mongoose.Schema({
   product_id: {
     type: Number,
     required: true
@@ -15,28 +16,10 @@ const QuestionsSchema = mongoose.Schema({
   asker_email: {
     type: String,
     lowercase: true
-  }
+  },
   question_helpfulness: Number,
   reported: Boolean,
-  answers: [{
-    id: {
-      type: Number,
-      required: true
-    },
-    body: String,
-    date: String,
-    answerer_name: String,
-    answerer_email: String,
-    reported: Boolean,
-    helpfulness: Number,
-    photos: [{
-      id: {
-        type: Number,
-        required: true
-      },
-      url: String
-    }]
-  }]
+  answers: [ answersSchema ]
 });
 
-module.exports =  mongoose.model('Questions', QuestionsSchema);
+module.exports =  mongoose.model('Questions', questionsSchema);
