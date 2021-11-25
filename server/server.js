@@ -82,15 +82,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         })
       );
     });
-
-    // return new Promise((resolve, reject) => {
-    //   setTimeout( async ()=> {
-    //     console.log('questions file load');
-    //     await saveQuestionIntoDB()
-    //     resolve('questions')
-    //   }, 1500)
-    // })
-
   }
 
   var loadAnswersFileContents = function() {
@@ -151,18 +142,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         })
       );
     });
-
-
-
-    // return new Promise((resolve, reject) => {
-    //   setTimeout( async ()=> {
-    //     console.log('answersPhotos file load');
-    //     await saveAnswersPhotoIntoDB();
-    //     resolve('answersPhotos')
-    //   }, 500)
-    // })
-
-
   }
 
   var saveQuestionIntoDB = function(rowEntries) {
@@ -225,7 +204,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
 
         console.log('[answer-save] trying to find qid:', qid);
         const foundQuestions = await Question.find( {question_id: qid})
-        //console.log('[answer-save] questions found: ', foundQuestions)
         for (var k = 0; k < foundQuestions.length; k++) {
           foundQuestions[k].answers.push(answer)
           await foundQuestions[k].save()
@@ -250,23 +228,16 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         url: rowEntries[2]
       }
       try {
-        //console.log('3.5trying to find aid:', aid);
         const foundAnswers = await Answer.find( {id: aid})
-        //console.log('3.5answers found: ', foundAnswers)
         for (var k = 0; k < foundAnswers.length; k++) {
           foundAnswers[k].photos.push(answers_photo)
           await foundAnswers[k].save()
-          //console.log('3.5saved answer for', foundAnswers[k])
           var qid = foundAnswers[k].question_id;
-          //console.log('3.5SUBQUESTION ID: ', qid);
           if (qid) {
             const foundQuestions = await Question.find( {question_id: qid})
-            //console.log('3.5sub-Question found', foundQuestions);
             for (var m = 0; m < foundQuestions.length; m++) {
               for (var n = 0; n < foundQuestions[m].answers.length; n++) {
-                //console.log(`3.5comparing ${aid} to ${foundQuestions[m].answers[n].id}`)
                 if (parseInt(foundQuestions[m].answers[n].id) === parseInt(aid)) {
-                  //console.log('3.5ANSWER FOUND IN QUESTION!');
                   foundQuestions[m].answers[n].photos.push(answers_photo);
                   await foundQuestions[m].save();
                   console.log(`inserted answers_photo ${answers_photo.id}`)
@@ -282,15 +253,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         reject(err);
       }
     });
-
-    // return new Promise((resolve, reject) => {
-    //   setTimeout(()=> {
-    //     console.log('saveAnswersPhotoIntoDB');
-    //     resolve('saveAnswersPhotoIntoDB')
-    //   }, 500)
-    // })
-
-
   }
 
   var run = async function() {
