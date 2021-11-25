@@ -13,30 +13,33 @@ const PORT = 3000;
 
 
 var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err, db)=> {
-  console.log('connected to the db!0');
+  console.log('connected to the db!');
 
   var loadQuestionFileContents = function() {
     return new Promise((resolve, reject) => {
-      setTimeout(()=> {
+      setTimeout( async ()=> {
         console.log('questions file load');
+        await saveQuestionIntoDB()
         resolve('questions')
-      }, 2000)
+      }, 1500)
     })
   }
 
   var loadAnswersFileContents = function() {
     return new Promise((resolve, reject) => {
-      setTimeout(()=> {
+      setTimeout( async ()=> {
         console.log('answers file load');
+        await saveAnswerIntoDB();
         resolve('answers')
-      }, 1000)
+      }, 900)
     })
   }
 
   var loadAnswersPhotoFileContents = async function() {
     return new Promise((resolve, reject) => {
-      setTimeout(()=> {
+      setTimeout( async ()=> {
         console.log('answersPhotos file load');
+        await saveAnswersPhotoIntoDB();
         resolve('answersPhotos')
       }, 500)
     })
@@ -47,7 +50,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
       setTimeout(()=> {
         console.log('save questions entry');
         resolve('saveQuestion')
-      }, 2000)
+      }, 1500)
     })
   }
 
@@ -56,7 +59,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
       setTimeout(()=> {
         console.log('saveAnswerIntoDB');
         resolve('saveAnswerIntoDB')
-      }, 1000)
+      }, 1500)
     })
   }
 
@@ -65,7 +68,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
       setTimeout(()=> {
         console.log('saveAnswersPhotoIntoDB');
         resolve('saveAnswersPhotoIntoDB')
-      }, 500)
+      }, 1250)
     })
   }
 
@@ -73,21 +76,21 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
     try{
       console.log('SOF');
       await loadQuestionFileContents();
-      await saveQuestionIntoDB();
+      //await saveQuestionIntoDB();
       await loadAnswersFileContents();
-      await saveAnswerIntoDB();
+      // await saveAnswerIntoDB();
       await loadAnswersPhotoFileContents();
-      await saveAnswersPhotoIntoDB();
+      // await saveAnswersPhotoIntoDB();
       console.log('EOF.')
     }
     catch(err) {
-      console.log("4ERROR RUNNING", err);
+      console.log("ERROR RUNNING", err);
     }
   }
   run();
 
 
 
-  app.listen(PORT, ()=>{console.log(`listening on ${PORT}`)});
+  // app.listen(PORT, ()=>{console.log(`listening on ${PORT}`)});
 
 })
