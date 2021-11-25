@@ -121,26 +121,48 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         })
       );
     });
+  }
+
+  var loadAnswersPhotoFileContents = function() {
+    console.log('begin reading in answers photos')
+    return new Promise( (resolve, reject) => {
+      var loc = path.join(__dirname, './data/testAnswers_photos.csv')
+      var brokenAnswersPhotos = [];
+      var stream = fs.createReadStream(loc)
+        .pipe(es.split())
+        .pipe(es.mapSync( async (line)=> {
+          stream.pause();
+          var entries = lineToEntries(line);
+          if (Number.isInteger(parseInt(entries[0]))) {
+            await saveAnswersPhotoIntoDB(entries);
+          } else {
+            brokenAnswersPhotos.push(entries)
+          }
+          stream.resume();
+        })
+        .on('error', (err)=> {
+          console.log('ERROR loading in answers_photos!', err);
+          reject(err);
+        })
+        .on('end', () => {
+          console.log('Finished Reading Answers_photos!');
+          console.log('Broken Answers_photos were:', brokenAnswersPhotos)
+          resolve(brokenAnswersPhotos)
+        })
+      );
+    });
+
 
 
     // return new Promise((resolve, reject) => {
     //   setTimeout( async ()=> {
-    //     console.log('answers file load');
-    //     await saveAnswerIntoDB();
-    //     resolve('answers')
-    //   }, 900)
+    //     console.log('answersPhotos file load');
+    //     await saveAnswersPhotoIntoDB();
+    //     resolve('answersPhotos')
+    //   }, 500)
     // })
 
-  }
 
-  var loadAnswersPhotoFileContents = async function() {
-    return new Promise((resolve, reject) => {
-      setTimeout( async ()=> {
-        console.log('answersPhotos file load');
-        await saveAnswersPhotoIntoDB();
-        resolve('answersPhotos')
-      }, 500)
-    })
   }
 
   var saveQuestionIntoDB = function(rowEntries) {
@@ -215,22 +237,60 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         reject(err);
       }
     });
+  }
+
+  var saveAnswersPhotoIntoDB = function(rowEntries) {
+
+    return new Promise(async (resolve, reject) => {
+
+      var aid = rowEntries[1];
+
+      var answers_photo = {
+        id: parseInt(rowEntries[0]),
+        url: rowEntries[2]
+      }
+      try {
+        //console.log('3.5trying to find aid:', aid);
+        const foundAnswers = await Answer.find( {id: aid})
+        //console.log('3.5answers found: ', foundAnswers)
+        for (var k = 0; k < foundAnswers.length; k++) {
+          foundAnswers[k].photos.push(answers_photo)
+          await foundAnswers[k].save()
+          //console.log('3.5saved answer for', foundAnswers[k])
+          var qid = foundAnswers[k].question_id;
+          //console.log('3.5SUBQUESTION ID: ', qid);
+          if (qid) {
+            const foundQuestions = await Question.find( {question_id: qid})
+            //console.log('3.5sub-Question found', foundQuestions);
+            for (var m = 0; m < foundQuestions.length; m++) {
+              for (var n = 0; n < foundQuestions[m].answers.length; n++) {
+                //console.log(`3.5comparing ${aid} to ${foundQuestions[m].answers[n].id}`)
+                if (parseInt(foundQuestions[m].answers[n].id) === parseInt(aid)) {
+                  //console.log('3.5ANSWER FOUND IN QUESTION!');
+                  foundQuestions[m].answers[n].photos.push(answers_photo);
+                  await foundQuestions[m].save();
+                  console.log(`inserted answers_photo ${answers_photo.id}`)
+                }
+              }
+            }
+          } //end if qid
+          resolve(answers_photo);
+        }
+
+      } catch(err) {
+        console.log('error saving answers_photo', err)
+        reject(err);
+      }
+    });
 
     // return new Promise((resolve, reject) => {
     //   setTimeout(()=> {
-    //     console.log('saveAnswerIntoDB');
-    //     resolve('saveAnswerIntoDB')
-    //   }, 100)
+    //     console.log('saveAnswersPhotoIntoDB');
+    //     resolve('saveAnswersPhotoIntoDB')
+    //   }, 500)
     // })
-  }
 
-  var saveAnswersPhotoIntoDB = function() {
-    return new Promise((resolve, reject) => {
-      setTimeout(()=> {
-        console.log('saveAnswersPhotoIntoDB');
-        resolve('saveAnswersPhotoIntoDB')
-      }, 1250)
-    })
+
   }
 
   var run = async function() {
