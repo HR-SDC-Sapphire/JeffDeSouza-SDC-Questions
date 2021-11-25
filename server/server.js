@@ -95,12 +95,42 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
 
   var loadAnswersFileContents = function() {
     return new Promise((resolve, reject) => {
-      setTimeout( async ()=> {
-        console.log('answers file load');
-        await saveAnswerIntoDB();
-        resolve('answers')
-      }, 900)
-    })
+      console.log('start reading answers');
+      var loc = path.join(__dirname, './data/testAnswers.csv')
+      var brokenAnswers = [];
+      var stream = fs.createReadStream(loc)
+        .pipe(es.split())
+        .pipe(es.mapSync(async (line)=> {
+          stream.pause();
+          var entries = lineToEntries(line);
+          if (Number.isInteger(parseInt(entries[0]))) {
+            await saveAnswerIntoDB(entries);
+          } else {
+            brokenAnswers.push(entries)
+          }
+          stream.resume();
+        })
+        .on('error', (err)=> {
+          console.log('ERROR loading answer!', err);
+          reject(err);
+        })
+        .on('end', () => {
+          console.log('Finished Reading Answers!');
+          console.log('Broken Answers were:', brokenAnswers)
+          resolve(brokenAnswers);
+        })
+      );
+    });
+
+
+    // return new Promise((resolve, reject) => {
+    //   setTimeout( async ()=> {
+    //     console.log('answers file load');
+    //     await saveAnswerIntoDB();
+    //     resolve('answers')
+    //   }, 900)
+    // })
+
   }
 
   var loadAnswersPhotoFileContents = async function() {
@@ -140,23 +170,58 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         reject(err);
       }
     });
+  }
+
+  var saveAnswerIntoDB = function(rowEntries) {
+    return new Promise(async (resolve, reject) => {
+      var qid = rowEntries[1];
+      var reportedVal = false;
+      if (rowEntries[6]==='true' || rowEntries[6]==='1') {
+        reportedVal = true;
+      }
+      var answer = {
+        id: parseInt(rowEntries[0]),
+        body: rowEntries[2],
+        date: rowEntries[3],
+        answerer_name: rowEntries[4],
+        answerer_email: rowEntries[5],
+        reported: reportedVal,
+        helpfulness: parseInt(rowEntries[7]),
+      }
+      const answerDoc = new Answer({
+        id: parseInt(rowEntries[0]),
+        question_id: qid,
+        body: rowEntries[2],
+        date: rowEntries[3],
+        answerer_name: rowEntries[4],
+        answerer_email: rowEntries[5],
+        reported: reportedVal,
+        helpfulness: parseInt(rowEntries[7]),
+      })
+      try {
+        const data = await answerDoc.save();
+
+        console.log('[answer-save] trying to find qid:', qid);
+        const foundQuestions = await Question.find( {question_id: qid})
+        //console.log('[answer-save] questions found: ', foundQuestions)
+        for (var k = 0; k < foundQuestions.length; k++) {
+          foundQuestions[k].answers.push(answer)
+          await foundQuestions[k].save()
+          console.log('[answer-save] saved answer for', foundQuestions[k].question_id)
+        }
+        resolve(foundQuestions);
+      } catch(err) {
+        console.log('error Saving Answer!', err)
+        reject(err);
+      }
+    });
 
     // return new Promise((resolve, reject) => {
     //   setTimeout(()=> {
-    //     console.log('save questions entry');
-    //     resolve('saveQuestion')
-    //   }, 1500)
+    //     console.log('saveAnswerIntoDB');
+    //     resolve('saveAnswerIntoDB')
+    //   }, 100)
     // })
-
-  }
-
-  var saveAnswerIntoDB = function() {
-    return new Promise((resolve, reject) => {
-      setTimeout(()=> {
-        console.log('saveAnswerIntoDB');
-        resolve('saveAnswerIntoDB')
-      }, 1500)
-    })
   }
 
   var saveAnswersPhotoIntoDB = function() {
@@ -172,11 +237,8 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
     try{
       console.log('SOF');
       await loadQuestionFileContents();
-      //await saveQuestionIntoDB();
       await loadAnswersFileContents();
-      // await saveAnswerIntoDB();
       await loadAnswersPhotoFileContents();
-      // await saveAnswersPhotoIntoDB();
       console.log('EOF.')
     }
     catch(err) {
