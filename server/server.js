@@ -15,14 +15,82 @@ const PORT = 3000;
 var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err, db)=> {
   console.log('connected to the db!');
 
+
+  var lineToEntries = function(string) {
+    var word = '';
+    var entries = [];
+    for (var k = 0; k < string.length; k++) {
+      var char = string[k];
+      if (char === ',') {
+        entries.push(word);
+        word = '';
+      } else if (char === '"') {
+        //quote mode
+        var startIndex = k;
+        var startWord = word;
+        var closed = false;
+        k++;
+        while (k < string.length && closed === false) {
+          char = string[k];
+          if (string[k] === '"') {
+            entries.push(word);
+            word = '';
+            closed = true;
+          } else {
+            word += char;
+          }
+          k++;
+        }
+        if (closed === false) {
+          k = startIndex+1;
+          word = startWord+'"';
+        }
+      }
+      else {
+        word += char;
+      }
+    }
+    entries.push(word.trim());
+    return entries;
+  }
+
   var loadQuestionFileContents = function() {
     return new Promise((resolve, reject) => {
-      setTimeout( async ()=> {
-        console.log('questions file load');
-        await saveQuestionIntoDB()
-        resolve('questions')
-      }, 1500)
-    })
+      console.log('start loading questions');
+      var loc = path.join(__dirname, './data/testQuestions.csv')
+      var brokenQuestions = [];
+      var stream = fs.createReadStream(loc)
+        .pipe(es.split())
+        .pipe(es.mapSync( async (line)=> {
+          stream.pause();
+          var entries = lineToEntries(line);
+          if (Number.isInteger(parseInt(entries[0]))) {
+            await saveQuestionIntoDB(entries)
+          } else {
+            brokenQuestions.push(entries)
+          }
+          stream.resume();
+        })
+        .on('error', (err)=> {
+          console.log('question load ERROR!', err);
+          reject(err);
+        })
+        .on('end', () => {
+          console.log('Finished Reading Questions!');
+          console.log('Broken Questions were:', brokenQuestions)
+          resolve(brokenQuestions);
+        })
+      );
+    });
+
+    // return new Promise((resolve, reject) => {
+    //   setTimeout( async ()=> {
+    //     console.log('questions file load');
+    //     await saveQuestionIntoDB()
+    //     resolve('questions')
+    //   }, 1500)
+    // })
+
   }
 
   var loadAnswersFileContents = function() {
@@ -45,13 +113,41 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
     })
   }
 
-  var saveQuestionIntoDB = function() {
-    return new Promise((resolve, reject) => {
-      setTimeout(()=> {
-        console.log('save questions entry');
-        resolve('saveQuestion')
-      }, 1500)
-    })
+  var saveQuestionIntoDB = function(rowEntries) {
+    return new Promise(async (resolve, reject) => {
+      var reportedVal = false;
+      if (rowEntries[6]==='true' || rowEntries[6]==='1') {
+        reportedVal = true;
+      }
+      const questionDoc = new Question({
+        product_id: parseInt(rowEntries[1]),
+        question_id: parseInt(rowEntries[0]),
+        question_body:rowEntries[2],
+        question_date: rowEntries[3],
+        asker_name: rowEntries[4],
+        asker_email: rowEntries[5],
+        reported: reportedVal,
+        question_helpfulness: parseInt(rowEntries[7]),
+        answers: []
+      })
+      try {
+        const data = await questionDoc.save();
+        console.log('finished saving question');
+        resolve(data);
+        //console.log(data);
+      } catch(err) {
+        console.log('error saving question!!!', err)
+        reject(err);
+      }
+    });
+
+    // return new Promise((resolve, reject) => {
+    //   setTimeout(()=> {
+    //     console.log('save questions entry');
+    //     resolve('saveQuestion')
+    //   }, 1500)
+    // })
+
   }
 
   var saveAnswerIntoDB = function() {
