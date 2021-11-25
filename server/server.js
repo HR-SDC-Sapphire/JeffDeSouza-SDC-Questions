@@ -207,7 +207,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         for (var k = 0; k < foundQuestions.length; k++) {
           foundQuestions[k].answers.push(answer)
           await foundQuestions[k].save()
-          console.log('[answer-save] saved answer for', foundQuestions[k].question_id)
+          console.log(`[answer-save] saved answer #${answer.id}}`, foundQuestions[k].question_id)
         }
         resolve(foundQuestions);
       } catch(err) {
