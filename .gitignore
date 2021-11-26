@@ -1,3 +1,6 @@
 node_modules
 server/config.js
 package-lock.json
+server/data/questions.csv
+server/data/answers.csv
+server/data/answers_photos.csv

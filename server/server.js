@@ -11,10 +11,8 @@ var es = require('event-stream');
 var path = require('path');
 const PORT = 3000;
 
-
 var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err, db)=> {
   console.log('connected to the db!');
-
 
   var lineToEntries = function(string) {
     var word = '';
@@ -165,7 +163,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         const data = await questionDoc.save();
         console.log('finished saving question');
         resolve(data);
-        //console.log(data);
       } catch(err) {
         console.log('error saving question!!!', err)
         reject(err);
