@@ -13,6 +13,9 @@ var fs = require('fs')
 var es = require('event-stream');
 var path = require('path');
 const PORT = 3000;
+var questionCount = 0;
+var answerCount = 0;
+var answerPhotoCount = 0;
 
 var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers', (err, db)=> {
   console.log('connected to the db!');
@@ -68,6 +71,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
           var entries = lineToEntries(line);
           if (Number.isInteger(parseInt(entries[0]))) {
             await saveQuestionIntoDB(entries)
+            questionCount++;
           } else {
             brokenQuestions.push(entries)
           }
@@ -99,6 +103,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
           var entries = lineToEntries(line);
           if (Number.isInteger(parseInt(entries[0]))) {
             await saveAnswerIntoDB(entries);
+            answerCount++;
           } else {
             brokenAnswers.push(entries)
           }
@@ -130,6 +135,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
           var entries = lineToEntries(line);
           if (Number.isInteger(parseInt(entries[0]))) {
             await saveAnswersPhotoIntoDB(entries);
+            answerPhotoCount++;
           } else {
             brokenAnswersPhotos.push(entries)
           }
@@ -276,13 +282,26 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
     });
   }
 
+  var dataLoad = true;
   var run = async function() {
     try{
+
       console.log('SOF');
-      await loadQuestionFileContents();
-      await loadAnswersFileContents();
-      await loadAnswersPhotoFileContents();
+      if(dataLoad) {
+        var timeStart = Math.floor(Date.now())
+        await loadQuestionFileContents();
+        await loadAnswersFileContents();
+        await loadAnswersPhotoFileContents();
+        var timeEnd = Math.floor(Date.now());
+        console.log('The Loading Process took ', timeEnd-timeStart, 'milliseconds to complete.')
+        console.log('QuestionsCount: ', questionCount)
+        console.log('AnswersCount: ', answerCount)
+        console.log('AnswersPhotoCount: ', answerPhotoCount)
+        console.log((timeEnd-timeStart)/60000, ' minutes, in total')
+      }
       console.log('EOF.')
+
+
     }
     catch(err) {
       console.log("ERROR RUNNING", err);
