@@ -6,9 +6,6 @@ const mongoose = require('mongoose');
 const Question = require('../database/models/questions.js')
 const Answer = require('../database/models/answers.js')
 const AnswersPhoto = require('../database/models/answers_photos.js')
-
-// const answersSchema = require('../database/models/answers.js')
-// const Answer = mongoose.model('answers', answersSchema);
 var fs = require('fs')
 var es = require('event-stream');
 var path = require('path');
@@ -61,8 +58,8 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
   var loadQuestionFileContents = function() {
     return new Promise((resolve, reject) => {
       console.log('start loading questions');
-//      var loc = path.join(__dirname, './data/questions.csv')
-      var loc = path.join(__dirname, './data/testQuestions.csv')
+      var loc = path.join(__dirname, './data/questions.csv')
+      // var loc = path.join(__dirname, './data/testQuestions.csv')
       var brokenQuestions = [];
       var stream = fs.createReadStream(loc)
         .pipe(es.split())
@@ -93,8 +90,8 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
   var loadAnswersFileContents = function() {
     return new Promise((resolve, reject) => {
       console.log('start reading answers');
-      // var loc = path.join(__dirname, './data/answers.csv')
-      var loc = path.join(__dirname, './data/testAnswers.csv')
+      var loc = path.join(__dirname, './data/answers.csv')
+      // var loc = path.join(__dirname, './data/testAnswers.csv')
       var brokenAnswers = [];
       var stream = fs.createReadStream(loc)
         .pipe(es.split())
@@ -125,8 +122,8 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
   var loadAnswersPhotoFileContents = function() {
     console.log('begin reading in answers photos')
     return new Promise( (resolve, reject) => {
-      // var loc = path.join(__dirname, './data/answers_photos.csv')
-      var loc = path.join(__dirname, './data/testAnswers_photos.csv')
+      var loc = path.join(__dirname, './data/answers_photos.csv')
+      // var loc = path.join(__dirname, './data/testAnswers_photos.csv')
       var brokenAnswersPhotos = [];
       var stream = fs.createReadStream(loc)
         .pipe(es.split())
@@ -191,15 +188,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
       if (rowEntries[6]==='true' || rowEntries[6]==='1') {
         reportedVal = true;
       }
-      // var answer = {
-      //   id: parseInt(rowEntries[0]),
-      //   body: rowEntries[2],
-      //   date: rowEntries[3],
-      //   answerer_name: rowEntries[4],
-      //   answerer_email: rowEntries[5],
-      //   reported: reportedVal,
-      //   helpfulness: parseInt(rowEntries[7]),
-      // }
       const answerDoc = new Answer({
         id: parseInt(rowEntries[0]),
         question_id: qid,
@@ -212,17 +200,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
       })
       try {
         const data = await answerDoc.save();
-
-        // console.log('[answer-save] trying to find qid:', qid);
-        // const foundQuestions = await Question.find( {question_id: qid})
-        // for (var k = 0; k < foundQuestions.length; k++) {
-        //   foundQuestions[k].answers.push(answer)
-        //   await foundQuestions[k].save()
-        //   if (parseInt(answer.id)%1000 === 0) {
-        //     console.log(`[answer-save] saved answer #${answer.id}}`, foundQuestions[k].question_id)
-        //   }
-        // }
-        // resolve(foundQuestions);
         if (parseInt(rowEntries[0])%1000 === 0) {
           console.log('finished saving answer ', rowEntries[0]);
         }
@@ -235,15 +212,8 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
   }
 
   var saveAnswersPhotoIntoDB = function(rowEntries) {
-
     return new Promise(async (resolve, reject) => {
-
       var aid = rowEntries[1];
-
-      // var answers_photo = {
-      //   id: parseInt(rowEntries[0]),
-      //   url: rowEntries[2]
-      // }
       const answersPhotoDoc = new AnswersPhoto({
         id: parseInt(rowEntries[0]),
         answer_id: aid,
@@ -251,41 +221,21 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
       })
       try {
         const data = await answersPhotoDoc.save();
-        // const foundAnswers = await Answer.find( {id: aid})
-        // for (var k = 0; k < foundAnswers.length; k++) {
-        //   foundAnswers[k].photos.push(answers_photo)
-        //   await foundAnswers[k].save()
-        //   var qid = foundAnswers[k].question_id;
-        //   if (qid) {
-        //     const foundQuestions = await Question.find( {question_id: qid})
-        //     for (var m = 0; m < foundQuestions.length; m++) {
-        //       for (var n = 0; n < foundQuestions[m].answers.length; n++) {
-        //         if (parseInt(foundQuestions[m].answers[n].id) === parseInt(aid)) {
-        //           foundQuestions[m].answers[n].photos.push(answers_photo);
-        //           await foundQuestions[m].save();
-        //           if (parseInt(answers_photo.id)%1000===0) {
-        //             console.log(`inserted answers_photo ${answers_photo.id}`)
-        //           }
-        //         }
-        //       }
-        //     }
-        //   } //end if qid
-          if (parseInt(rowEntries[0])%1000 === 0) {
-            console.log('finished saving answers_photo ', rowEntries[0]);
-          }
-          resolve(data);
+        if (parseInt(rowEntries[0])%1000 === 0) {
+          console.log('finished saving answers_photo ', rowEntries[0]);
         }
-        catch(err) {
-          console.log('error saving answers_photo', err)
-          reject(err);
-        }
+        resolve(data);
+      }
+      catch(err) {
+        console.log('error saving answers_photo', err)
+        reject(err);
+      }
     });
   }
 
   var dataLoad = true;
   var run = async function() {
     try{
-
       console.log('SOF');
       if(dataLoad) {
         var timeStart = Math.floor(Date.now())
@@ -300,16 +250,12 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
         console.log((timeEnd-timeStart)/60000, ' minutes, in total')
       }
       console.log('EOF.')
-
-
     }
     catch(err) {
       console.log("ERROR RUNNING", err);
     }
   }
   run();
-
-
 
   // app.listen(PORT, ()=>{console.log(`listening on ${PORT}`)});
 
