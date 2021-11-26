@@ -55,7 +55,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
   var loadQuestionFileContents = function() {
     return new Promise((resolve, reject) => {
       console.log('start loading questions');
-      var loc = path.join(__dirname, './data/testQuestions.csv')
+      var loc = path.join(__dirname, './data/questions.csv')
       var brokenQuestions = [];
       var stream = fs.createReadStream(loc)
         .pipe(es.split())
@@ -85,7 +85,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
   var loadAnswersFileContents = function() {
     return new Promise((resolve, reject) => {
       console.log('start reading answers');
-      var loc = path.join(__dirname, './data/testAnswers.csv')
+      var loc = path.join(__dirname, './data/answers.csv')
       var brokenAnswers = [];
       var stream = fs.createReadStream(loc)
         .pipe(es.split())
@@ -115,7 +115,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
   var loadAnswersPhotoFileContents = function() {
     console.log('begin reading in answers photos')
     return new Promise( (resolve, reject) => {
-      var loc = path.join(__dirname, './data/testAnswers_photos.csv')
+      var loc = path.join(__dirname, './data/answers_photos.csv')
       var brokenAnswersPhotos = [];
       var stream = fs.createReadStream(loc)
         .pipe(es.split())
@@ -161,7 +161,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
       })
       try {
         const data = await questionDoc.save();
-        console.log('finished saving question');
+        if (parseInt(rowEntries[0])%1000 === 0) {
+          console.log('finished saving question ', rowEntries[0]);
+        }
         resolve(data);
       } catch(err) {
         console.log('error saving question!!!', err)
@@ -204,7 +206,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
         for (var k = 0; k < foundQuestions.length; k++) {
           foundQuestions[k].answers.push(answer)
           await foundQuestions[k].save()
-          console.log(`[answer-save] saved answer #${answer.id}}`, foundQuestions[k].question_id)
+          if (parseInt(answer.id)%1000 === 0) {
+            console.log(`[answer-save] saved answer #${answer.id}}`, foundQuestions[k].question_id)
+          }
         }
         resolve(foundQuestions);
       } catch(err) {
@@ -237,7 +241,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err,
                 if (parseInt(foundQuestions[m].answers[n].id) === parseInt(aid)) {
                   foundQuestions[m].answers[n].photos.push(answers_photo);
                   await foundQuestions[m].save();
-                  console.log(`inserted answers_photo ${answers_photo.id}`)
+                  if (parseInt(answers_photo.id)%1000===0) {
+                    console.log(`inserted answers_photo ${answers_photo.id}`)
+                  }
                 }
               }
             }
