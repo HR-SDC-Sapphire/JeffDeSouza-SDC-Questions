@@ -11,7 +11,7 @@ var es = require('event-stream');
 var path = require('path');
 const PORT = 3000;
 
-var questions = mongoose.connect('mongodb://localhost:27017/allQuestions', (err, db)=> {
+var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers', (err, db)=> {
   console.log('connected to the db!');
 
   var lineToEntries = function(string) {
