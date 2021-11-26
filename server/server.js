@@ -269,11 +269,10 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
           }
           resolve(data);
         }
-
-      } catch(err) {
-        console.log('error saving answers_photo', err)
-        reject(err);
-      }
+        catch(err) {
+          console.log('error saving answers_photo', err)
+          reject(err);
+        }
     });
   }
 

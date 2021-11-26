@@ -5,7 +5,7 @@ const answersPhotosSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  aid: Number,
+  answer_id: Number,
   url: String
 });
 
