@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-//const answersSchema = require('./answers.js')
+const answersSchema = require('./answers.js')
 
 const questionsSchema = mongoose.Schema({
   product_id: {
@@ -18,8 +18,10 @@ const questionsSchema = mongoose.Schema({
     lowercase: true
   },
   question_helpfulness: Number,
-  reported: Boolean
-  // answers: [ answersSchema ]
+  reported: Boolean,
+  last_updated: Number,
+  answers: [ answersSchema ]
 });
 
-module.exports =  mongoose.model('Questions', questionsSchema);
+module.exports =  questionsSchema;
+//module.exports =  mongoose.model('Questions', questionsSchema);

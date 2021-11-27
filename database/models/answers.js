@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const answersPhotosSchema = require('./answers_photos.js')
 
 const answersSchema = new mongoose.Schema({
   id: {
@@ -11,15 +12,10 @@ const answersSchema = new mongoose.Schema({
   answerer_name: String,
   answerer_email: String,
   reported: Boolean,
-  helpfulness: Number
-  // photos: [{
-  //   id: {
-  //     type: Number,
-  //     required: true
-  //   },
-  //   url: String
-  // }]
+  helpfulness: Number,
+  last_updated: Number,
+  photos: [ answersPhotosSchema ]
 });
 
-module.exports =  mongoose.model('Answers', answersSchema);
-//module.exports =  answersSchema;
+module.exports =  answersSchema;
+//module.exports =  mongoose.model('Answers', answersSchema);

@@ -6,8 +6,9 @@ const answersPhotosSchema = new mongoose.Schema({
     required: true
   },
   answer_id: Number,
-  url: String
+  url: String,
+  last_updated: Number
 });
 
-module.exports =  mongoose.model('AnswersPhotos', answersPhotosSchema);
-//module.exports =  answersPhotosSchema;
+module.exports =  answersPhotosSchema;
+//module.exports =  mongoose.model('AnswersPhotos', answersPhotosSchema);

@@ -3,9 +3,12 @@ const bodyParser = require('body-parser')
 const app = express();
 app.use(bodyParser.json())
 const mongoose = require('mongoose');
-const Question = require('../database/models/questions.js')
-const Answer = require('../database/models/answers.js')
-const AnswersPhoto = require('../database/models/answers_photos.js')
+const questionsSchema = require('../database/models/questions.js')
+const Question = mongoose.model('questions', questionsSchema);
+const answersSchema = require('../database/models/answers.js')
+const Answer = mongoose.model('answers', answersSchema);
+const answersPhotosSchema = require('../database/models/answers_photos.js')
+const AnswersPhoto = mongoose.model('answers_photos', answersPhotosSchema);
 var fs = require('fs')
 var es = require('event-stream');
 var path = require('path');
@@ -13,9 +16,10 @@ const PORT = 3000;
 var questionCount = 0;
 var answerCount = 0;
 var answerPhotoCount = 0;
+var timeStart = Date.now();
 
-var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers', (err, db)=> {
-  console.log('connected to the db!');
+var questions = mongoose.connect('mongodb://localhost:27017/SDC', (err, db)=> {
+  console.log('connected to the db (SDC)!');
 
   var lineToEntries = function(string) {
     var word = '';
@@ -164,9 +168,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
         question_date: rowEntries[3],
         asker_name: rowEntries[4],
         asker_email: rowEntries[5],
-        reported: reportedVal,
         question_helpfulness: parseInt(rowEntries[7]),
-        answers: []
+        reported: reportedVal,
+        last_updated: timeStart
       })
       try {
         const data = await questionDoc.save();
@@ -197,6 +201,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
         answerer_email: rowEntries[5],
         reported: reportedVal,
         helpfulness: parseInt(rowEntries[7]),
+        last_updated: timeStart
       })
       try {
         const data = await answerDoc.save();
@@ -238,7 +243,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/QuestionsAndAnswers'
     try{
       console.log('SOF');
       if(dataLoad) {
-        var timeStart = Math.floor(Date.now())
+        //var timeStart = Math.floor(Date.now())
         await loadQuestionFileContents();
         await loadAnswersFileContents();
         await loadAnswersPhotoFileContents();
