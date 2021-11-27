@@ -10,7 +10,7 @@ const answersPhotosSchema = new mongoose.Schema({
     type: Number,
     required: true,
     index: true
-  }
+  },
   url: String,
   last_updated: Number
 });
