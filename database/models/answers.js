@@ -4,9 +4,14 @@ const answersPhotosSchema = require('./answers_photos.js')
 const answersSchema = new mongoose.Schema({
   id: {
     type: Number,
-    required: true
+    required: true,
+    index: true
   },
-  question_id: Number,
+  question_id: {
+    type: Number,
+    required: true,
+    index: true
+  }
   body: String,
   date: String,
   answerer_name: String,

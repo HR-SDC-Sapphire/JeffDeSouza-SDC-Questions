@@ -18,7 +18,7 @@ var answerCount = 0;
 var answerPhotoCount = 0;
 var timeStart = Date.now();
 
-var questions = mongoose.connect('mongodb://localhost:27017/SDC', (err, db)=> {
+var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, db)=> {
   console.log('connected to the db (SDC)!');
 
   var lineToEntries = function(string) {

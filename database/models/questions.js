@@ -4,11 +4,13 @@ const answersSchema = require('./answers.js')
 const questionsSchema = mongoose.Schema({
   product_id: {
     type: Number,
-    required: true
+    required: true,
+    index: true
   },
   question_id: {
     type: Number,
-    required: true
+    required: true,
+    index: true
   },
   question_body: String,
   question_date: String,
