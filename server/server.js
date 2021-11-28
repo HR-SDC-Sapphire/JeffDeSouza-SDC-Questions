@@ -18,6 +18,41 @@ var timeStart = Date.now();
 var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, db)=> {
   console.log('connected to the db (SDC)!');
 
+  var formatQuestions = function(questionsArray) {
+    //replace me with a more sophisticated select
+    returnArray = [];
+    questionsArray.forEach((question) => {
+      var newQuestion = {
+        question_id: question.question_id,
+        question_body: question.question_body,
+        question_date: question.question_date,
+        asker_name: question.asker_name,
+        question_helpfulness: question.question_helpfulness,
+        reported: question.reported,
+        answers: question.answers
+      };
+      returnArray.push(newQuestion)
+    })
+    return returnArray;
+  }
+
+  var formatAnswers = function(answersArray) {
+    //replace me with a more sophisticated select
+    returnObject = {};
+    answersArray.forEach((answer) => {
+      var newAnswer = {
+        id: answer.id,
+        body: answer.body,
+        date: answer.date,
+        answerer_name: answer.answerer_name,
+        helpfulness: answer.helpfulness,
+        photos: answer.photos
+      };
+      returnObject[id] = newAnswer;
+    })
+    return returnArray;
+  }
+
   //GET QUESTIONS
   //GET /qa/questions/
   app.get('/qa/questions', async (req, res) => {
@@ -30,15 +65,28 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     }
     var pageCount = page * count;
     console.log(`product_id ${pid}, page ${page}, count ${count}`)
+
+
+
     try {
       console.log(`query is`, prodQuery)
       const posts = await Question.find(prodQuery).limit(pageCount);
       var results = Array.from(posts);
       results =  results.slice(count*(page-1))
+      results = formatQuestions(results);
+
+      results.forEach( async (question) => {
+        const answers = await Answer.find({question_id: question.question_id, reported: 0});
+        var answersArray = Array.from(answers);
+        question[answers] = formatAnswers(answersArray)
+      })
+
+
+
       var returnVal = { product_id: pid, results }
-      console.log('type of result is', typeof(posts))
-      console.log('body is ', posts)
-      console.log('shown is', returnVal)
+      // console.log('type of result is', typeof(posts))
+      // console.log('body is ', posts)
+      // console.log('shown is', returnVal)
       res.status(200).json(returnVal);
     } catch (err) {
       res.json({error_message: err})
