@@ -22,19 +22,27 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
   console.log('connected to the db (SDC)!');
 
   app.get('/', async (req, res) => {
-    var product_id = req.query.product_id;
+    var pid = req.query.product_id;
     var page = req.query.page || 1;
     var count = req.query.count || 5;
-    var prodQuery = '';
-    if (product_id !== '') {
-      prodQuery = '';
+    var prodQuery = {reported:0};
+    if (pid !== undefined) {
+      prodQuery = {product_id: pid, reported: 0};
     }
-    console.log(`product_id ${product_id}, page ${page}, count ${count}`)
+    var pageCount = page * count;
+    console.log(`product_id ${pid}, page ${page}, count ${count}`)
     try {
-      const posts = await Question.find('{reported:0}').limit(5);
-      res.json(posts);
+      console.log(`query is`, prodQuery)
+      const posts = await Question.find(prodQuery).limit(pageCount);
+      var results = Array.from(posts);
+      results =  results.slice(count*(page-1))
+      var returnVal = { product_id: pid, results }
+      console.log('type of result is', typeof(posts))
+      console.log('body is ', posts)
+      console.log('shown is', returnVal)
+      res.json(returnVal);
     } catch (err) {
-      res.json({message: err})
+      res.json({error_message: err})
     }
   });
 
