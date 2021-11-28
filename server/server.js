@@ -21,6 +21,22 @@ var timeStart = Date.now();
 var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, db)=> {
   console.log('connected to the db (SDC)!');
 
+  app.get('/', async (req, res) => {
+    var product_id = req.query.product_id;
+    var page = req.query.page || 1;
+    var count = req.query.count || 5;
+    var prodQuery = '';
+    if (product_id !== '') {
+      prodQuery = '';
+    }
+    console.log(`product_id ${product_id}, page ${page}, count ${count}`)
+    try {
+      const posts = await Question.find('{reported:0}').limit(5);
+      res.json(posts);
+    } catch (err) {
+      res.json({message: err})
+    }
+  });
 
 
 
@@ -28,7 +44,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
 
 
 
-
+  app.listen(PORT, ()=>{console.log(`listening on ${PORT} at ${new Date().toLocaleTimeString()}`)});
 
 /*
   var lineToEntries = function(string) {
@@ -273,6 +289,5 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
   run();
   */
 
-  app.listen(PORT, ()=>{console.log(`listening on ${PORT}`)});
 
 })
