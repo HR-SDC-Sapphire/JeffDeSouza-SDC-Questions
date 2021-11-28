@@ -12,25 +12,14 @@ const AnswersPhoto = mongoose.model('answers_photos', answersPhotosSchema);
 var fs = require('fs')
 var es = require('event-stream');
 var path = require('path');
-const PORT = 3000;
-// var questionCount = 0;
-// var answerCount = 0;
-// var answerPhotoCount = 0;
+var questionCount = 0;
+var answerCount = 0;
+var answerPhotoCount = 0;
 var timeStart = Date.now();
 
 var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, db)=> {
   console.log('connected to the db (SDC)!');
 
-
-
-
-
-
-
-
-
-
-/*
   var lineToEntries = function(string) {
     var word = '';
     var entries = [];
@@ -248,7 +237,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     });
   }
 
-  var dataLoad = false;
+  var dataLoad = true;
   var run = async function() {
     try{
       console.log('SOF');
@@ -271,8 +260,5 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     }
   }
   run();
-  */
-
-  app.listen(PORT, ()=>{console.log(`listening on ${PORT}`)});
 
 })
