@@ -39,7 +39,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
       console.log('type of result is', typeof(posts))
       console.log('body is ', posts)
       console.log('shown is', returnVal)
-      res.json(returnVal);
+      res.status(200).json(returnVal);
     } catch (err) {
       res.json({error_message: err})
     }
@@ -47,8 +47,12 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
 
   //GET ANSWERS FOR QID
   //GET /qa/questions/:question_id/answers
-  app.get('/qa/questions/', async (req, res) => {
+  app.get('/qa/questions/:question_id/answers', async (req, res) => {
+    var question_id = req.params.question_id;
+    var page = req.query.page || 1;
+    var count = req.query.count || 5;
 
+    // console.log('question_id is ', req.params.question_id);
   });
 
   //ADD A QUESTION
@@ -59,31 +63,35 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
 
   //ADD AN ANSWER
   //POST /qa/questions/:question_id/answers
-  app.post('/qa/questions/', async (req, res) => {
+  app.post('/qa/questions/:question_id/answers', async (req, res) => {
+    var question_id = req.params.question_id;
 
   });
 
   //MARK QUESTION AS HELPFUL
   //PUT /qa/questions/:question_id/helpful
-  app.put('/qa/questions/', async (req, res) => {
+  app.put('/qa/questions/:question_id/helpful', async (req, res) => {
+    var question_id = req.params.question_id;
 
   });
 
   //REPORT QUESTION
   //PUT /qa/questions/:question_id/report
-  app.put('/qa/questions/', async (req, res) => {
+  app.put('/qa/questions/:question_id/report', async (req, res) => {
+    var question_id = req.params.question_id;
 
   });
 
   //MARK ANSWER AS HELPFUL
   //PUT /qa/answers/:answer_id/helpful
-  app.put('/qa/questions/', async (req, res) => {
-
+  app.put('/qa/answers/:answer_id/helpful', async (req, res) => {
+    var answer_id = req.params.answer_id;
   });
 
   //REPORT ANSWER
   //PUT /qa/answers/:answer_id/report
-  app.put('/qa/questions/', async (req, res) => {
+  app.put('/qa/answers/:answer_id/report', async (req, res) => {
+    var answer_id = req.params.answer_id;
 
   });
 
