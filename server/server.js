@@ -48,9 +48,36 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
         helpfulness: answer.helpfulness,
         photos: answer.photos
       };
-      returnObject[id] = newAnswer;
+      returnObject[parseInt(answer.id)] = newAnswer;
     })
-    return returnArray;
+    return returnObject;
+  }
+
+  var attachAnswers = function(questions) {
+    return new Promise( async (resolve, reject) => {
+      try{
+        var newQuestions = [];
+        for (var k = 0; k < questions.length; k++) {
+          var question = questions[k];
+          const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
+          var answersArray = Array.from(answersResult);
+          question['answers'] = formatAnswers(answersArray)
+          newQuestions.push(question);
+        }
+
+        //HELP DESK: WHY DIDN'T THIS WORK?
+        // questions.forEach( async (question) => {
+        //   const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
+        //   var answersArray = Array.from(answersResult);
+        //   question['answers'] = formatAnswers(answersArray)
+        //   newQuestions.push(question);
+        // })
+        resolve(newQuestions);
+      } catch {
+        reject('There was an error attaching an answer to the question')
+      }
+
+    });
   }
 
   //GET QUESTIONS
@@ -64,30 +91,48 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
       prodQuery = {product_id: pid, reported: 0};
     }
     var pageCount = page * count;
-    console.log(`product_id ${pid}, page ${page}, count ${count}`)
+    //console.log(`product_id ${pid}, page ${page}, count ${count}`)
 
 
 
     try {
-      console.log(`query is`, prodQuery)
+      //console.log(`query is`, prodQuery)
       const posts = await Question.find(prodQuery).limit(pageCount);
       var results = Array.from(posts);
       results =  results.slice(count*(page-1))
       results = formatQuestions(results);
-
-      results.forEach( async (question) => {
-        const answers = await Answer.find({question_id: question.question_id, reported: 0});
-        var answersArray = Array.from(answers);
-        question[answers] = formatAnswers(answersArray)
+      var newQuestions = attachAnswers(results)
+      .then((questions)=>{
+        console.log('seriously the questions', questions);
+        var returnVal = { product_id: pid, results: questions }
+        return res.status(200).json(returnVal);
+      })
+      .then((val)=>{
+        console.log('newQuestions', newQuestions);
+        //console.log('also the val', val);
+      })
+      .catch((err)=>{
+        console.log('there was an error', err);
       })
 
+      // var newQuestions = [];
+      // results.map( async (question) => {
+      //   const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
+      //   var answersArray = Array.from(answersResult);
+      //   question['answers'] = formatAnswers(answersArray)
+      //   console.log(`Answers for QID${question.question_id} are`, question.answers);
+      //   newQuestions.push(question);
+      //   return question;
+      // })
+      //results = newQuestions;
 
 
-      var returnVal = { product_id: pid, results }
-      // console.log('type of result is', typeof(posts))
-      // console.log('body is ', posts)
-      // console.log('shown is', returnVal)
-      res.status(200).json(returnVal);
+
+      // var returnVal = { product_id: pid, results: newQuestions }
+      // // console.log('type of result is', typeof(posts))
+      // // console.log('body is ', posts)
+      // // console.log('shown is', returnVal)
+      // res.status(200).json(returnVal);
     } catch (err) {
       res.json({error_message: err})
     }
