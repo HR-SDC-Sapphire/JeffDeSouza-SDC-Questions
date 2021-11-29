@@ -36,20 +36,65 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     return returnArray;
   }
 
-  var formatAnswers = function(answersArray) {
+  var formatPhotos = function(photosArray) {
+    var newPhotosArray = [];
+    for (var k = 0; k < photosArray.length; k++) {
+      var photo = photosArray[k];
+      var newPhoto = {
+        id: photo.id,
+        url: photo.url,
+      }
+      newPhotosArray.push(newPhoto);
+    }
+    return newPhotosArray;
+  }
+
+  var attachPhotos = async function(answer_id) {
+    return new Promise( async (resolve, reject) => {
+      try{
+        const photosResult = await AnswersPhoto.find({answer_id: answer_id});
+        var photosArray = Array.from(photosResult);
+        var newPhotos = formatPhotos(photosArray)
+        console.log(`photos for ${answer_id} are`,  newPhotos)
+        resolve(newPhotos);
+      } catch {
+        reject('There was an error attaching an answer to the question')
+      }
+    });
+  }
+
+  var formatAnswers = async function(answersArray) {
     //replace me with a more sophisticated select
     returnObject = {};
-    answersArray.forEach((answer) => {
-      var newAnswer = {
-        id: answer.id,
-        body: answer.body,
-        date: answer.date,
-        answerer_name: answer.answerer_name,
-        helpfulness: answer.helpfulness,
-        photos: answer.photos
-      };
-      returnObject[parseInt(answer.id)] = newAnswer;
-    })
+
+        for (var k = 0; k < answersArray.length; k++) {
+          var answer = answersArray[k];
+
+          var photosArray = await attachPhotos(answer.id)
+
+          var newAnswer = {
+            id: answer.id,
+            body: answer.body,
+            date: answer.date,
+            answerer_name: answer.answerer_name,
+            helpfulness: answer.helpfulness,
+            photos: photosArray
+          };
+          returnObject[parseInt(answer.id)] = newAnswer;
+        }
+
+        // answersArray.forEach((answer) => {
+        //   var newAnswer = {
+        //     id: answer.id,
+        //     body: answer.body,
+        //     date: answer.date,
+        //     answerer_name: answer.answerer_name,
+        //     helpfulness: answer.helpfulness,
+        //     photos: answer.photos
+        //   };
+        //  returnObject[parseInt(answer.id)] = newAnswer;
+        // })
+
     return returnObject;
   }
 
@@ -61,7 +106,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
           var question = questions[k];
           const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
           var answersArray = Array.from(answersResult);
-          question['answers'] = formatAnswers(answersArray)
+          question['answers'] = await formatAnswers(answersArray)
           newQuestions.push(question);
         }
 
@@ -72,6 +117,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
         //   question['answers'] = formatAnswers(answersArray)
         //   newQuestions.push(question);
         // })
+        //IS IT BECAUSE HIGHER ORDERED FUNCTIONS DO NOT STOP - not even for async/await?
         resolve(newQuestions);
       } catch {
         reject('There was an error attaching an answer to the question')
@@ -93,46 +139,16 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     var pageCount = page * count;
     //console.log(`product_id ${pid}, page ${page}, count ${count}`)
 
-
-
     try {
       //console.log(`query is`, prodQuery)
       const posts = await Question.find(prodQuery).limit(pageCount);
       var results = Array.from(posts);
       results =  results.slice(count*(page-1))
       results = formatQuestions(results);
-      var newQuestions = attachAnswers(results)
-      .then((questions)=>{
-        console.log('seriously the questions', questions);
-        var returnVal = { product_id: pid, results: questions }
-        return res.status(200).json(returnVal);
-      })
-      .then((val)=>{
-        console.log('newQuestions', newQuestions);
-        //console.log('also the val', val);
-      })
-      .catch((err)=>{
-        console.log('there was an error', err);
-      })
+      var newQuestions = await attachAnswers(results)
+      var returnVal = { product_id: pid, results: newQuestions }
+      res.status(200).json(returnVal);
 
-      // var newQuestions = [];
-      // results.map( async (question) => {
-      //   const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
-      //   var answersArray = Array.from(answersResult);
-      //   question['answers'] = formatAnswers(answersArray)
-      //   console.log(`Answers for QID${question.question_id} are`, question.answers);
-      //   newQuestions.push(question);
-      //   return question;
-      // })
-      //results = newQuestions;
-
-
-
-      // var returnVal = { product_id: pid, results: newQuestions }
-      // // console.log('type of result is', typeof(posts))
-      // // console.log('body is ', posts)
-      // // console.log('shown is', returnVal)
-      // res.status(200).json(returnVal);
     } catch (err) {
       res.json({error_message: err})
     }
