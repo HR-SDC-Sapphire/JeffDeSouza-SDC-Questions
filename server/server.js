@@ -65,7 +65,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
 
   var formatAnswers = async function(answersArray) {
     //replace me with a more sophisticated select
-    returnObject = {};
+    answersObject = {};
 
         for (var k = 0; k < answersArray.length; k++) {
           var answer = answersArray[k];
@@ -80,9 +80,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
             helpfulness: answer.helpfulness,
             photos: photosArray
           };
-          returnObject[parseInt(answer.id)] = newAnswer;
+          answersObject[parseInt(answer.id)] = newAnswer;
         }
-    return returnObject;
+    return answersObject;
   }
 
   var getAnswers = async function(question) {
@@ -104,9 +104,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
         var newQuestions = [];
         for (var k = 0; k < questions.length; k++) {
           var question = questions[k];
-          // const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
-          // var answersArray = Array.from(answersResult);
-          // question['answers'] = await formatAnswers(answersArray)
           const answers = await getAnswers(question)
           question['answers'] = answers;
           newQuestions.push(question);
