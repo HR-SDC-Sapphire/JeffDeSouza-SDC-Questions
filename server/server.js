@@ -301,11 +301,30 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     }
   });
 
+  var incrementQuestionHelpfulness = async function(question_id) {
+    return new Promise( async (resolve, reject) => {
+      try {
+        const data = await Question.updateOne({question_id: question_id}, {$inc: {question_helpfulness: 1}})
+        resolve(data);
+      } catch(err) {
+        console.error('there was an error getting question' + question_id)
+        reject(err)
+      }
+    });
+  }
+
   //MARK QUESTION AS HELPFUL
   //PUT /qa/questions/:question_id/helpful
   app.put('/qa/questions/:question_id/helpful', async (req, res) => {
     var question_id = req.params.question_id;
-
+    try {
+      var helpfulQuestion = await incrementQuestionHelpfulness(question_id);
+      console.log(helpfulQuestion);
+      res.status(204).send()
+    }
+    catch(err) {
+      console.error('error marking question as helpful', err)
+    }
   });
 
   //REPORT QUESTION
@@ -315,10 +334,31 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
 
   });
 
+
+  var incrementAnswerHelpfulness = async function(answer_id) {
+    return new Promise( async (resolve, reject) => {
+      try {
+        const data = await Answer.updateOne({id: answer_id}, {$inc: {answer_helpfulness: 1}})
+        resolve(data);
+      } catch(err) {
+        console.error('there was an error getting question' + answer_id)
+        reject(err)
+      }
+    });
+  }
+
   //MARK ANSWER AS HELPFUL
   //PUT /qa/answers/:answer_id/helpful
   app.put('/qa/answers/:answer_id/helpful', async (req, res) => {
     var answer_id = req.params.answer_id;
+    try {
+      var helpfulAnswer = await incrementAnswerHelpfulness(answer_id);
+      console.log(helpfulAnswer);
+      res.status(204).send()
+    }
+    catch(err) {
+      console.error('error marking answer as helpful', err)
+    }
   });
 
   //REPORT ANSWER
