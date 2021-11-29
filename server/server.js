@@ -106,18 +106,10 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
           var answers = await formatAnswers(answersArray);
           resolve(answers);
         } else {
-          //=ASSUMPTION=
-          //Problem: Despite 0 being an allowed page number, the default is 1
-          //Problem: Most answers don't have a second page
-          //Solution: I'm treating page 0 and page 1 as the same page.
-          if(page === 0) {
-            page = 1;
-          }
-          var pageCount = (page) * count;
+          var pageCount = page * count;
           answersResult = await Answer.find({question_id: question.question_id, reported: 0}).limit(pageCount);
-          var results = Array.from(answersResult);
-          answersResult =  results.slice(count*(page-1))
-          var answers = await formatAnswers(answersResult, true);
+          answersArray = Array.from(answersResult).slice(count * (page - 1))
+          var answers = await formatAnswers(answersArray, true);
           var answersObj = {
             question: question.question_id,
             page: page,
@@ -156,7 +148,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
       } catch {
         reject('There was an error attaching an answer to the question')
       }
-
     });
   }
 
@@ -189,6 +180,14 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     var question_id = req.params.question_id;
     var page = req.query.page || 1;
     var count = req.query.count || 5;
+
+    //=ASSUMPTION=
+    //Problem: Despite 0 being an allowed page number, the default is 1
+    //Problem: Most answers don't have a second page
+    //Solution: I'm treating page 0 and page 1 as the same page.
+    if(page === 0) {
+      page = 1;
+    }
 
     const answers = await getAnswers({ question_id }, page, count)
     res.status(200).json(answers);
