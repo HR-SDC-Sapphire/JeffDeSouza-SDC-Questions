@@ -291,7 +291,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
         }
       });
     }
-
     try{
       const highestID = await getHighestID();
       const insertResults = await saveAnswerIntoDB(parseInt(highestID) + 1)
@@ -300,8 +299,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
       console.error('There was an error inserting an answer:', err)
       res.status(500).send(err);
     }
-
-
   });
 
   //MARK QUESTION AS HELPFUL
