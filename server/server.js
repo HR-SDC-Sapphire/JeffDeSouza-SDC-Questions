@@ -319,21 +319,41 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     var question_id = req.params.question_id;
     try {
       var helpfulQuestion = await incrementQuestionHelpfulness(question_id);
-      console.log(helpfulQuestion);
+      //console.log(helpfulQuestion);
       res.status(204).send()
     }
     catch(err) {
       console.error('error marking question as helpful', err)
+      res.status(500).send(err);
     }
   });
+
+  var reportQuestion = async function(question_id) {
+    return new Promise( async (resolve, reject) => {
+      try {
+        const data = await Question.updateOne({question_id: question_id}, {$set: {reported: true}})
+        resolve(data);
+      } catch(err) {
+        console.error('there was an error reporting question' + question_id)
+        reject(err)
+      }
+    });
+  }
 
   //REPORT QUESTION
   //PUT /qa/questions/:question_id/report
   app.put('/qa/questions/:question_id/report', async (req, res) => {
     var question_id = req.params.question_id;
-
+    try {
+      var reportedQuestion = await reportQuestion(question_id);
+      console.log(reportedQuestion);
+      res.status(204).send()
+    }
+    catch(err) {
+      console.error('error marking question as helpful', err)
+      res.status(500).send(err);
+    }
   });
-
 
   var incrementAnswerHelpfulness = async function(answer_id) {
     return new Promise( async (resolve, reject) => {
@@ -341,13 +361,12 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
         const data = await Answer.updateOne({id: answer_id}, {$inc: {helpfulness: 1}})
         resolve(data);
       } catch(err) {
-        console.error('there was an error getting question' + answer_id)
+        console.error('there was an error incrementing an Answsers Helpfulness' + answer_id)
         reject(err)
       }
     });
   }
 
-  //MARK ANSWER AS HELPFUL
   //PUT /qa/answers/:answer_id/helpful
   app.put('/qa/answers/:answer_id/helpful', async (req, res) => {
     var answer_id = req.params.answer_id;
@@ -358,14 +377,35 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     }
     catch(err) {
       console.error('error marking answer as helpful', err)
+      res.status(500).send(err);
     }
   });
+
+  var reportAnswer = async function(answer_id) {
+    return new Promise( async (resolve, reject) => {
+      try {
+        const data = await Answer.updateOne({id: answer_id}, {$set: {reported: true}})
+        resolve(data);
+      } catch(err) {
+        console.error('there was an error reporting answer' + answer_id)
+        reject(err)
+      }
+    });
+  }
 
   //REPORT ANSWER
   //PUT /qa/answers/:answer_id/report
   app.put('/qa/answers/:answer_id/report', async (req, res) => {
     var answer_id = req.params.answer_id;
-
+    try {
+      var reportedAnswer = await reportAnswer(answer_id);
+      console.log(reportedAnswer);
+      res.status(204).send()
+    }
+    catch(err) {
+      console.error('error reporting answer', err)
+      res.status(500).send(err);
+    }
   });
 
 
