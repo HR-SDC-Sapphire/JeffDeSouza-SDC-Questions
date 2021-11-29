@@ -9,9 +9,6 @@ const answersSchema = require('../database/models/answers.js')
 const Answer = mongoose.model('answers', answersSchema);
 const answersPhotosSchema = require('../database/models/answers_photos.js')
 const AnswersPhoto = mongoose.model('answers_photos', answersPhotosSchema);
-// var fs = require('fs')
-// var es = require('event-stream');
-// var path = require('path');
 const PORT = 3000;
 var timeStart = Date.now();
 
@@ -55,7 +52,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
         const photosResult = await AnswersPhoto.find({answer_id: answer_id});
         var photosArray = Array.from(photosResult);
         var newPhotos = formatPhotos(photosArray)
-        //console.log(`photos for ${answer_id} are`,  newPhotos)
         resolve(newPhotos);
       } catch {
         reject('There was an error attaching an answer to the question')
@@ -98,7 +94,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
       }
       return answersObject;
     }
-
   }
 
   var getAnswers = async function(question, page, count) {
