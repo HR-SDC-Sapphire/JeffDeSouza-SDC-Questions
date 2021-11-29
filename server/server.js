@@ -151,7 +151,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     });
   }
 
-  //GET /qa/questions/
   app.get('/qa/questions', async (req, res) => {
     var pid = req.query.product_id;
     var page = req.query.page || 1; //ASSUMPTION: PAGE 0 == INVALID
@@ -175,7 +174,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     }
   });
 
-  //GET /qa/questions/:question_id/answers
   app.get('/qa/questions/:question_id/answers', async (req, res) => {
     var question_id = req.params.question_id;
     var page = req.query.page || 1;
@@ -193,8 +191,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     res.status(200).json(answers);
   });
 
-  //ADD A QUESTION
-  //POST /qa/questions
   app.post('/qa/questions', async (req, res) => {
     var pid = req.body.product_id;
     var qBody = req.body.body;
@@ -247,8 +243,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
 
   });
 
-  //ADD AN ANSWER
-  //POST /qa/questions/:question_id/answers
   app.post('/qa/questions/:question_id/answers', async (req, res) => {
     var qid = req.params.question_id;
     var photos = req.body.photos; //array
@@ -313,8 +307,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     });
   }
 
-  //MARK QUESTION AS HELPFUL
-  //PUT /qa/questions/:question_id/helpful
   app.put('/qa/questions/:question_id/helpful', async (req, res) => {
     var question_id = req.params.question_id;
     try {
@@ -340,8 +332,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     });
   }
 
-  //REPORT QUESTION
-  //PUT /qa/questions/:question_id/report
   app.put('/qa/questions/:question_id/report', async (req, res) => {
     var question_id = req.params.question_id;
     try {
@@ -367,7 +357,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     });
   }
 
-  //PUT /qa/answers/:answer_id/helpful
   app.put('/qa/answers/:answer_id/helpful', async (req, res) => {
     var answer_id = req.params.answer_id;
     try {
@@ -393,8 +382,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     });
   }
 
-  //REPORT ANSWER
-  //PUT /qa/answers/:answer_id/report
   app.put('/qa/answers/:answer_id/report', async (req, res) => {
     var answer_id = req.params.answer_id;
     try {
@@ -407,8 +394,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
       res.status(500).send(err);
     }
   });
-
-
 
   app.listen(PORT, ()=>{console.log(`listening on ${PORT} at ${new Date().toLocaleTimeString()}`)});
 })
