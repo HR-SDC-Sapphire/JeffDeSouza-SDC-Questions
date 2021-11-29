@@ -22,7 +22,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
       var newQuestion = {
         question_id: question.question_id,
         question_body: question.question_body,
-        question_date: question.question_date,
+        question_date: new Date(question.question_date).toJSON(),
         asker_name: question.asker_name,
         question_helpfulness: question.question_helpfulness,
         reported: question.reported,
@@ -69,7 +69,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
         var newAnswer = {
           id: answer.id,
           body: answer.body,
-          date: answer.date,
+          date: new Date(answer.date).toJSON(),
           answerer_name: answer.answerer_name,
           helpfulness: answer.helpfulness,
           photos: photosArray
@@ -85,7 +85,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
         var newAnswer = {
           id: answer.id,
           body: answer.body,
-          date: answer.date,
+          date: new Date(answer.date).toJSON(),
           answerer_name: answer.answerer_name,
           helpfulness: answer.helpfulness,
           photos: photosArray
@@ -196,7 +196,53 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   //ADD A QUESTION
   //POST /qa/questions
   app.post('/qa/questions', async (req, res) => {
+    var pid = req.body.product_id;
+    var qBody = req.body.body;
+    var aEmail = req.body.email;
+    var aName = req.body.name;
 
+    var getHighestID = async function() {
+      return new Promise( async (resolve, reject) => {
+        try {
+            highestQuestion = await Question.find().sort({question_id: -1}).limit(1)
+            var highestQuestionID = highestQuestion[0].question_id
+            // console.log('highest question is', highestQuestion);
+            resolve(highestQuestionID);
+        } catch(err) {
+          console.error('there was an error getting the highest question ID')
+        }
+      });
+    }
+
+    var saveQuestionIntoDB = function(new_question_id) {
+      return new Promise(async (resolve, reject) => {
+        const questionDoc = new Question({
+          product_id: pid,
+          question_id: parseInt(new_question_id),
+          question_body: qBody,
+          question_date: new Date().toLocaleDateString(),
+          asker_name: aName,
+          asker_email: aEmail,
+          question_helpfulness: 0,
+          reported: false,
+          last_updated: Date.now()
+        })
+        try {
+          const data = await questionDoc.save();
+          resolve(data);
+        } catch(err) {
+          console.error('error saving question!!!', err)
+          reject(err);
+        }
+      });
+    }
+
+    const highestID = await getHighestID();
+    // console.log(`highestID is ${highestID}`)
+    const insertResults = await saveQuestionIntoDB(parseInt(highestID) + 1)
+
+
+    res.status(201).send(insertResults)
   });
 
   //ADD AN ANSWER
