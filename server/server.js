@@ -82,20 +82,20 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
           };
           returnObject[parseInt(answer.id)] = newAnswer;
         }
-
-        // answersArray.forEach((answer) => {
-        //   var newAnswer = {
-        //     id: answer.id,
-        //     body: answer.body,
-        //     date: answer.date,
-        //     answerer_name: answer.answerer_name,
-        //     helpfulness: answer.helpfulness,
-        //     photos: answer.photos
-        //   };
-        //  returnObject[parseInt(answer.id)] = newAnswer;
-        // })
-
     return returnObject;
+  }
+
+  var getAnswers = async function(question) {
+    return new Promise( async (resolve, reject) => {
+      try{
+        const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
+        var answersArray = Array.from(answersResult);
+        var answers = await formatAnswers(answersArray);
+        resolve(answers);
+      } catch {
+        reject('There was an error attaching an answer to the question')
+      }
+    });
   }
 
   var attachAnswers = function(questions) {
@@ -104,9 +104,11 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
         var newQuestions = [];
         for (var k = 0; k < questions.length; k++) {
           var question = questions[k];
-          const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
-          var answersArray = Array.from(answersResult);
-          question['answers'] = await formatAnswers(answersArray)
+          // const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
+          // var answersArray = Array.from(answersResult);
+          // question['answers'] = await formatAnswers(answersArray)
+          const answers = await getAnswers(question)
+          question['answers'] = answers;
           newQuestions.push(question);
         }
 
@@ -161,7 +163,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     var page = req.query.page || 1;
     var count = req.query.count || 5;
 
-    // console.log('question_id is ', req.params.question_id);
   });
 
   //ADD A QUESTION
