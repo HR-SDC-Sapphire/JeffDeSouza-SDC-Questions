@@ -338,7 +338,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   var incrementAnswerHelpfulness = async function(answer_id) {
     return new Promise( async (resolve, reject) => {
       try {
-        const data = await Answer.updateOne({id: answer_id}, {$inc: {answer_helpfulness: 1}})
+        const data = await Answer.updateOne({id: answer_id}, {$inc: {helpfulness: 1}})
         resolve(data);
       } catch(err) {
         console.error('there was an error getting question' + answer_id)
