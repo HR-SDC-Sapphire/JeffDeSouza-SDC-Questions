@@ -9,13 +9,13 @@ const answersSchema = require('../database/models/answers.js')
 const Answer = mongoose.model('answers', answersSchema);
 const answersPhotosSchema = require('../database/models/answers_photos.js')
 const AnswersPhoto = mongoose.model('answers_photos', answersPhotosSchema);
-var fs = require('fs')
-var es = require('event-stream');
-var path = require('path');
+// var fs = require('fs')
+// var es = require('event-stream');
+// var path = require('path');
 const PORT = 3000;
 var timeStart = Date.now();
 
-var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, db)=> {
+var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, db)=> {
   console.log('connected to the db (SDC)!');
 
   var formatQuestions = function(questionsArray) {
@@ -81,7 +81,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
         results.push(newAnswer);
       }
       return results;
-
     } else {
       answersObject = {};
       for (var k = 0; k < answersArray.length; k++) {
@@ -112,9 +111,10 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
           var answers = await formatAnswers(answersArray);
           resolve(answers);
         } else {
-          //ASSUMPTION:
-          //Despite 0 being an allowed page number, the default is 1
-          //Most answers don't have a second page, so I'm treating page 0 and page 1 as the same.
+          //=ASSUMPTION=
+          //Problem: Despite 0 being an allowed page number, the default is 1
+          //Problem: Most answers don't have a second page
+          //Solution: I'm treating page 0 and page 1 as the same page.
           if(page === 0) {
             page = 1;
           }
@@ -131,8 +131,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
           }
           resolve(answersObj);
         }
-
-
       } catch {
         reject('There was an error attaching an answer to the question')
       }
@@ -158,6 +156,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
         //   newQuestions.push(question);
         // })
         //IS IT BECAUSE HIGHER ORDERED FUNCTIONS DO NOT STOP - not even for async/await?
+
         resolve(newQuestions);
       } catch {
         reject('There was an error attaching an answer to the question')
@@ -166,35 +165,30 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     });
   }
 
-  //GET QUESTIONS
   //GET /qa/questions/
   app.get('/qa/questions', async (req, res) => {
     var pid = req.query.product_id;
-    var page = req.query.page || 1;
+    var page = req.query.page || 1; //ASSUMPTION: PAGE 0 == INVALID
     var count = req.query.count || 5;
+    var pageCount = page * count;
+
     var prodQuery = {reported:0};
     if (pid !== undefined) {
       prodQuery = {product_id: pid, reported: 0};
     }
-    var pageCount = page * count;
-    //console.log(`product_id ${pid}, page ${page}, count ${count}`)
-
     try {
-      //console.log(`query is`, prodQuery)
-      const posts = await Question.find(prodQuery).limit(pageCount);
-      var results = Array.from(posts);
-      results =  results.slice(count*(page-1))
+      const questions = await Question.find(prodQuery).limit(pageCount);
+      var results = Array.from(questions);
+      results =  results.slice(count * (page - 1))
       results = formatQuestions(results);
-      var newQuestions = await attachAnswers(results)
-      var returnVal = { product_id: pid, results: newQuestions }
-      res.status(200).json(returnVal);
-
+      var questionsWithAnswers = await attachAnswers(results)
+      var questionObject = { product_id: pid, results: questionsWithAnswers }
+      res.status(200).json(questionObject);
     } catch (err) {
       res.json({error_message: err})
     }
   });
 
-  //GET ANSWERS FOR QID
   //GET /qa/questions/:question_id/answers
   app.get('/qa/questions/:question_id/answers', async (req, res) => {
     var question_id = req.params.question_id;
@@ -202,7 +196,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     var count = req.query.count || 5;
 
     const answers = await getAnswers({ question_id }, page, count)
-    // console.log('answers found are', answers, `for ${question_id} ${page} ${count}`);
     res.status(200).json(answers);
   });
 
