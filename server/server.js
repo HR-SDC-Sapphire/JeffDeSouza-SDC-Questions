@@ -55,7 +55,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
         const photosResult = await AnswersPhoto.find({answer_id: answer_id});
         var photosArray = Array.from(photosResult);
         var newPhotos = formatPhotos(photosArray)
-        console.log(`photos for ${answer_id} are`,  newPhotos)
+        //console.log(`photos for ${answer_id} are`,  newPhotos)
         resolve(newPhotos);
       } catch {
         reject('There was an error attaching an answer to the question')
@@ -63,35 +63,76 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     });
   }
 
-  var formatAnswers = async function(answersArray) {
+  var formatAnswers = async function(answersArray, arrayFlag) {
     //replace me with a more sophisticated select
-    answersObject = {};
+    if (arrayFlag) {
+      results = [];
+      for (var k = 0; k < answersArray.length; k++) {
+        var answer = answersArray[k];
+        var photosArray = await attachPhotos(answer.id)
+        var newAnswer = {
+          id: answer.id,
+          body: answer.body,
+          date: answer.date,
+          answerer_name: answer.answerer_name,
+          helpfulness: answer.helpfulness,
+          photos: photosArray
+        };
+        results.push(newAnswer);
+      }
+      return results;
 
-        for (var k = 0; k < answersArray.length; k++) {
-          var answer = answersArray[k];
+    } else {
+      answersObject = {};
+      for (var k = 0; k < answersArray.length; k++) {
+        var answer = answersArray[k];
+        var photosArray = await attachPhotos(answer.id)
+        var newAnswer = {
+          id: answer.id,
+          body: answer.body,
+          date: answer.date,
+          answerer_name: answer.answerer_name,
+          helpfulness: answer.helpfulness,
+          photos: photosArray
+        };
+        answersObject[parseInt(answer.id)] = newAnswer;
+      }
+      return answersObject;
+    }
 
-          var photosArray = await attachPhotos(answer.id)
-
-          var newAnswer = {
-            id: answer.id,
-            body: answer.body,
-            date: answer.date,
-            answerer_name: answer.answerer_name,
-            helpfulness: answer.helpfulness,
-            photos: photosArray
-          };
-          answersObject[parseInt(answer.id)] = newAnswer;
-        }
-    return answersObject;
   }
 
-  var getAnswers = async function(question) {
+  var getAnswers = async function(question, page, count) {
     return new Promise( async (resolve, reject) => {
       try{
-        const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
-        var answersArray = Array.from(answersResult);
-        var answers = await formatAnswers(answersArray);
-        resolve(answers);
+        var answersResult = [];
+        if (page === undefined && count === undefined) {
+          answersResult = await Answer.find({question_id: question.question_id, reported: 0});
+          var answersArray = Array.from(answersResult);
+          var answers = await formatAnswers(answersArray);
+          resolve(answers);
+        } else {
+          //ASSUMPTION:
+          //Despite 0 being an allowed page number, the default is 1
+          //Most answers don't have a second page, so I'm treating page 0 and page 1 as the same.
+          if(page === 0) {
+            page = 1;
+          }
+          var pageCount = (page) * count;
+          answersResult = await Answer.find({question_id: question.question_id, reported: 0}).limit(pageCount);
+          var results = Array.from(answersResult);
+          answersResult =  results.slice(count*(page-1))
+          var answers = await formatAnswers(answersResult, true);
+          var answersObj = {
+            question: question.question_id,
+            page: page,
+            count: count,
+            results: answers
+          }
+          resolve(answersObj);
+        }
+
+
       } catch {
         reject('There was an error attaching an answer to the question')
       }
@@ -160,6 +201,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, 
     var page = req.query.page || 1;
     var count = req.query.count || 5;
 
+    const answers = await getAnswers({ question_id }, page, count)
+    // console.log('answers found are', answers, `for ${question_id} ${page} ${count}`);
+    res.status(200).json(answers);
   });
 
   //ADD A QUESTION
