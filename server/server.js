@@ -152,6 +152,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   }
 
   app.get('/qa/questions', async (req, res) => {
+    var timeStart = Date.now();
     var pid = req.query.product_id;
     var page = req.query.page || 1; //ASSUMPTION: PAGE 0 == INVALID
     var count = req.query.count || 5;
@@ -168,6 +169,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
       results = formatQuestions(results);
       var questionsWithAnswers = await attachAnswers(results)
       var questionObject = { product_id: pid, results: questionsWithAnswers }
+      console.log('Get Questions took ', Date.now() - timeStart, 'ms to complete.')
       res.status(200).json(questionObject);
     } catch (err) {
       res.json({error_message: err})
@@ -175,6 +177,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   });
 
   app.get('/qa/questions/:question_id/answers', async (req, res) => {
+    var timeStart = Date.now();
     var question_id = req.params.question_id;
     var page = req.query.page || 1;
     var count = req.query.count || 5;
@@ -188,10 +191,12 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     }
 
     const answers = await getAnswers({ question_id }, page, count)
+    console.log('Get Answers took ', Date.now() - timeStart, 'ms to complete.')
     res.status(200).json(answers);
   });
 
   app.post('/qa/questions', async (req, res) => {
+    var timeStart = Date.now();
     var pid = req.body.product_id;
     var qBody = req.body.body;
     var aEmail = req.body.email;
@@ -235,6 +240,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     try{
       const highestID = await getHighestID();
       const insertResults = await saveQuestionIntoDB(parseInt(highestID) + 1)
+      console.log('Post Question took ', Date.now() - timeStart, 'ms to complete.')
       res.status(201).send()
     } catch (err) {
       console.error('There was an error inserting a question:', err)
@@ -244,6 +250,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   });
 
   app.post('/qa/questions/:question_id/answers', async (req, res) => {
+    var timeStart = Date.now();
     var qid = req.params.question_id;
     var photos = req.body.photos; //array
     var aBody = req.body.body;
@@ -288,6 +295,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     try{
       const highestID = await getHighestID();
       const insertResults = await saveAnswerIntoDB(parseInt(highestID) + 1)
+      console.log('Post Answer took ', Date.now() - timeStart, 'ms to complete.')
       res.status(201).send()
     } catch (err) {
       console.error('There was an error inserting an answer:', err)
@@ -308,9 +316,11 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   }
 
   app.put('/qa/questions/:question_id/helpful', async (req, res) => {
+    var timeStart = Date.now();
     var question_id = req.params.question_id;
     try {
       var helpfulQuestion = await incrementQuestionHelpfulness(question_id);
+      console.log('Helpful Question took ', Date.now() - timeStart, 'ms to complete.')
       res.status(204).send()
     }
     catch(err) {
@@ -332,10 +342,11 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   }
 
   app.put('/qa/questions/:question_id/report', async (req, res) => {
+    var timeStart = Date.now();
     var question_id = req.params.question_id;
     try {
       var reportedQuestion = await reportQuestion(question_id);
-      console.log(reportedQuestion);
+      console.log('Report Question took ', Date.now() - timeStart, 'ms to complete.')
       res.status(204).send()
     }
     catch(err) {
@@ -357,10 +368,11 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   }
 
   app.put('/qa/answers/:answer_id/helpful', async (req, res) => {
+    var timeStart = Date.now();
     var answer_id = req.params.answer_id;
     try {
       var helpfulAnswer = await incrementAnswerHelpfulness(answer_id);
-      console.log(helpfulAnswer);
+      console.log('Helpful Answer took ', Date.now() - timeStart, 'ms to complete.')
       res.status(204).send()
     }
     catch(err) {
@@ -382,10 +394,11 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   }
 
   app.put('/qa/answers/:answer_id/report', async (req, res) => {
+    var timeStart = Date.now();
     var answer_id = req.params.answer_id;
     try {
       var reportedAnswer = await reportAnswer(answer_id);
-      console.log(reportedAnswer);
+      console.log('Report Answer took ', Date.now() - timeStart, 'ms to complete.')
       res.status(204).send()
     }
     catch(err) {
