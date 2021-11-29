@@ -54,7 +54,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
         var newPhotos = formatPhotos(photosArray)
         resolve(newPhotos);
       } catch {
-        reject('There was an error attaching an answer to the question')
+        reject('There was an error attaching a photo to an answer')
       }
     });
   }
@@ -119,7 +119,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
           resolve(answersObj);
         }
       } catch {
-        reject('There was an error attaching an answer to the question')
+        reject('There was an error Finding() an answer')
       }
     });
   }
