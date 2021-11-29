@@ -206,7 +206,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
         try {
             highestQuestion = await Question.find().sort({question_id: -1}).limit(1)
             var highestQuestionID = highestQuestion[0].question_id
-            // console.log('highest question is', highestQuestion);
             resolve(highestQuestionID);
         } catch(err) {
           console.error('there was an error getting the highest question ID')
@@ -231,24 +230,77 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
           const data = await questionDoc.save();
           resolve(data);
         } catch(err) {
-          console.error('error saving question!!!', err)
+          console.error('error saving question!', err)
           reject(err);
         }
       });
     }
 
-    const highestID = await getHighestID();
-    // console.log(`highestID is ${highestID}`)
-    const insertResults = await saveQuestionIntoDB(parseInt(highestID) + 1)
+    try{
+      const highestID = await getHighestID();
+      const insertResults = await saveQuestionIntoDB(parseInt(highestID) + 1)
+      res.status(201).send(insertResults)
+    } catch (err) {
+      console.error('There was an error inserting a question:', err)
+      res.status(500).send(err);
+    }
 
-
-    res.status(201).send(insertResults)
   });
 
   //ADD AN ANSWER
   //POST /qa/questions/:question_id/answers
   app.post('/qa/questions/:question_id/answers', async (req, res) => {
-    var question_id = req.params.question_id;
+    var qid = req.params.question_id;
+    var photos = req.body.photos; //array
+    var aBody = req.body.body;
+    var aEmail = req.body.email;
+    var aName = req.body.name;
+
+    var getHighestID = async function() {
+      return new Promise( async (resolve, reject) => {
+        try {
+            highestAnswer = await Answer.find().sort({id: -1}).limit(1)
+            var highestAnswerID = highestAnswer[0].id
+            resolve(highestAnswerID);
+        } catch(err) {
+          console.error('there was an error getting the highest question ID')
+        }
+      });
+    }
+
+    var saveAnswerIntoDB = function(new_answer_id) {
+      return new Promise(async (resolve, reject) => {
+        const answerDoc = new Answer({
+          id: parseInt(new_answer_id),
+          question_id: qid,
+          body: aBody,
+          date: new Date().toLocaleDateString(),
+          answerer_name: aName,
+          answerer_email: aEmail,
+          reported: false,
+          helpfulness: 0,
+          last_updated: Date.now(),
+          photos: photos
+        })
+        try {
+          const data = await answerDoc.save();
+          resolve(data);
+        } catch(err) {
+          console.error('error saving answer!', err)
+          reject(err);
+        }
+      });
+    }
+
+    try{
+      const highestID = await getHighestID();
+      const insertResults = await saveAnswerIntoDB(parseInt(highestID) + 1)
+      res.status(201).send(insertResults)
+    } catch (err) {
+      console.error('There was an error inserting an answer:', err)
+      res.status(500).send(err);
+    }
+
 
   });
 
