@@ -235,7 +235,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     try{
       const highestID = await getHighestID();
       const insertResults = await saveQuestionIntoDB(parseInt(highestID) + 1)
-      res.status(201).send(insertResults)
+      res.status(201).send()
     } catch (err) {
       console.error('There was an error inserting a question:', err)
       res.status(500).send(err);
@@ -288,7 +288,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     try{
       const highestID = await getHighestID();
       const insertResults = await saveAnswerIntoDB(parseInt(highestID) + 1)
-      res.status(201).send(insertResults)
+      res.status(201).send()
     } catch (err) {
       console.error('There was an error inserting an answer:', err)
       res.status(500).send(err);
@@ -311,7 +311,6 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
     var question_id = req.params.question_id;
     try {
       var helpfulQuestion = await incrementQuestionHelpfulness(question_id);
-      //console.log(helpfulQuestion);
       res.status(204).send()
     }
     catch(err) {
