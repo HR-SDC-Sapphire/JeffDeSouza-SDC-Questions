@@ -21,6 +21,23 @@ var timeStart = Date.now();
 var questions = mongoose.connect('mongodb://localhost:27017/SDC-clean', (err, db)=> {
   console.log('connected to the db (SDC)!');
 
+  getDataStatus(collection) {
+    var state = false;
+    //return if the given collection was completed
+    return state;
+  }
+
+  getDataStatusID(collection) {
+    var id = 0;
+    //return the highest ID for the given collection
+    return id;
+  }
+
+  updateDataStatus(collection, state) {
+    //mark the given collection complete!
+  }
+
+
   var lineToEntries = function(string) {
     var word = '';
     var entries = [];
@@ -61,97 +78,116 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-clean', (err, db
 
   var loadQuestionFileContents = function() {
     return new Promise((resolve, reject) => {
-      console.log('start loading questions');
-      var loc = path.join(__dirname, './data/questions.csv')
-      // var loc = path.join(__dirname, './data/testQuestions.csv')
-      var brokenQuestions = [];
-      var stream = fs.createReadStream(loc)
-        .pipe(es.split())
-        .pipe(es.mapSync( async (line)=> {
-          stream.pause();
-          var entries = lineToEntries(line);
-          if (Number.isInteger(parseInt(entries[0]))) {
-            await saveQuestionIntoDB(entries)
-            questionCount++;
-          } else {
-            brokenQuestions.push(entries)
-          }
-          stream.resume();
-        })
-        .on('error', (err)=> {
-          console.log('question load ERROR!', err);
-          reject(err);
-        })
-        .on('end', () => {
-          console.log('Finished Reading Questions!');
-          console.log('Broken Questions were:', brokenQuestions)
-          resolve(brokenQuestions);
-        })
-      );
+      if (!getDataStatus('questions')) {
+        var highestQID = getDataStatusID('questions');
+        console.log('start loading questions');
+        var loc = path.join(__dirname, './data/questions.csv')
+        // var loc = path.join(__dirname, './data/testQuestions.csv')
+        var brokenQuestions = [];
+        var stream = fs.createReadStream(loc)
+          .pipe(es.split())
+          .pipe(es.mapSync( async (line)=> {
+            stream.pause();
+            var entries = lineToEntries(line);
+            if (highestQID < entries[0]) {
+              if (Number.isInteger(parseInt(entries[0]))) {
+                await saveQuestionIntoDB(entries)
+                questionCount++;
+              } else {
+                brokenQuestions.push(entries)
+              }
+            }
+            stream.resume();
+          })
+          .on('error', (err)=> {
+            console.log('question load ERROR!', err);
+            reject(err);
+          })
+          .on('end', () => {
+            console.log('Finished Reading Questions!');
+            updateDataStatus('questions', true)
+            console.log('Broken Questions were:', brokenQuestions)
+            resolve(brokenQuestions);
+          })
+        );
+      } else {
+        console.log('Questions have already been completed!')
+        resolve([])
+      }
     });
   }
 
   var loadAnswersFileContents = function() {
     return new Promise((resolve, reject) => {
-      console.log('start reading answers');
-      var loc = path.join(__dirname, './data/answers.csv')
-      // var loc = path.join(__dirname, './data/testAnswers.csv')
-      var brokenAnswers = [];
-      var stream = fs.createReadStream(loc)
-        .pipe(es.split())
-        .pipe(es.mapSync(async (line)=> {
-          stream.pause();
-          var entries = lineToEntries(line);
-          if (Number.isInteger(parseInt(entries[0]))) {
-            await saveAnswerIntoDB(entries);
-            answerCount++;
-          } else {
-            brokenAnswers.push(entries)
-          }
-          stream.resume();
-        })
-        .on('error', (err)=> {
-          console.log('ERROR loading answer!', err);
-          reject(err);
-        })
-        .on('end', () => {
-          console.log('Finished Reading Answers!');
-          console.log('Broken Answers were:', brokenAnswers)
-          resolve(brokenAnswers);
-        })
-      );
+      if (!getDataStatus('answers')) {
+        var highestAID = getDataStatusID('answers');
+        console.log('start reading answers');
+        var loc = path.join(__dirname, './data/answers.csv')
+        // var loc = path.join(__dirname, './data/testAnswers.csv')
+        var brokenAnswers = [];
+        var stream = fs.createReadStream(loc)
+          .pipe(es.split())
+          .pipe(es.mapSync(async (line)=> {
+            stream.pause();
+            var entries = lineToEntries(line);
+            if (highestAID < entries[0]) {
+              if (Number.isInteger(parseInt(entries[0]))) {
+                await saveAnswerIntoDB(entries);
+                answerCount++;
+              } else {
+                brokenAnswers.push(entries)
+              }
+            }
+            stream.resume();
+          })
+          .on('error', (err)=> {
+            console.log('ERROR loading answer!', err);
+            reject(err);
+          })
+          .on('end', () => {
+            console.log('Finished Reading Answers!');
+            console.log('Broken Answers were:', brokenAnswers)
+            resolve(brokenAnswers);
+          })
+        );
+      }
     });
   }
 
   var loadAnswersPhotoFileContents = function() {
     console.log('begin reading in answers photos')
     return new Promise( (resolve, reject) => {
-      var loc = path.join(__dirname, './data/answers_photos.csv')
-      // var loc = path.join(__dirname, './data/testAnswers_photos.csv')
-      var brokenAnswersPhotos = [];
-      var stream = fs.createReadStream(loc)
-        .pipe(es.split())
-        .pipe(es.mapSync( async (line)=> {
-          stream.pause();
-          var entries = lineToEntries(line);
-          if (Number.isInteger(parseInt(entries[0]))) {
-            await saveAnswersPhotoIntoDB(entries);
-            answerPhotoCount++;
-          } else {
-            brokenAnswersPhotos.push(entries)
-          }
-          stream.resume();
-        })
-        .on('error', (err)=> {
-          console.log('ERROR loading in answers_photos!', err);
-          reject(err);
-        })
-        .on('end', () => {
-          console.log('Finished Reading Answers_photos!');
-          console.log('Broken Answers_photos were:', brokenAnswersPhotos)
-          resolve(brokenAnswersPhotos)
-        })
-      );
+      if (!getDataStatus('answersPhotos')) {
+        var highestAPID = getDataStatusID('answersPhotos');
+        var loc = path.join(__dirname, './data/answers_photos.csv')
+        // var loc = path.join(__dirname, './data/testAnswers_photos.csv')
+        var brokenAnswersPhotos = [];
+        var stream = fs.createReadStream(loc)
+          .pipe(es.split())
+          .pipe(es.mapSync( async (line)=> {
+            stream.pause();
+            var entries = lineToEntries(line);
+            if (highestAPID < entries[0]) {
+              if (Number.isInteger(parseInt(entries[0]))) {
+                await saveAnswersPhotoIntoDB(entries);
+                answerPhotoCount++;
+              } else {
+                brokenAnswersPhotos.push(entries)
+              }
+            }
+            stream.resume();
+          })
+          .on('error', (err)=> {
+            console.log('ERROR loading in answers_photos!', err);
+            reject(err);
+          })
+          .on('end', () => {
+            console.log('Finished Reading Answers_photos!');
+            console.log('Broken Answers_photos were:', brokenAnswersPhotos)
+            resolve(brokenAnswersPhotos)
+          })
+        );
+      }
     });
   }
 
