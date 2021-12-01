@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const data_load_status_schema = new mongoose.Schema({
-  collection: String,
+  collection_name: String,
   complete: Boolean
 });
 

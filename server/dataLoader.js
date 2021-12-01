@@ -18,23 +18,82 @@ var answerCount = 0;
 var answerPhotoCount = 0;
 var timeStart = Date.now();
 
-var questions = mongoose.connect('mongodb://localhost:27017/SDC-clean', (err, db)=> {
+var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)=> {
   console.log('connected to the db (SDC)!');
 
-  getDataStatus(collection) {
-    var state = false;
-    //return if the given collection was completed
-    return state;
+  var getHighestID = function( collection_name ) {
+    return new Promise( async (resolve, reject) => {
+      try {
+        if (collection_name === 'questions') {
+          const highestQuestion = await Question.find().sort({question_id: -1}).limit(1);
+          resolve(highestQuestion[0].question_id > 0 ? highestQuestion[0].question_id : 0)
+        } else if (collection_name === 'answers') {
+          const highestAnswer = await Answer.find().sort({id: -1}).limit(1);
+          resolve(highestAnswer[0].id > 0 ? highestAnswer[0].id : 0)
+        } else if (collection_name === 'answersPhotos') {
+          const highestAnswerPhoto = await AnswersPhoto.find().sort({id: -1}).limit(1);
+          resolve(highestAnswerPhoto[0].id > 0 ? highestAnswerPhoto[0].id : 0)
+        }
+      } catch(err) {
+        console.error('there was an error getting the highest question ID', err)
+      }
+    });
   }
 
-  getDataStatusID(collection) {
-    var id = 0;
-    //return the highest ID for the given collection
-    return id;
+  getDataStatusID = function(collection_name) {
+    return new Promise( async (resolve, reject) => {
+      //return -1 if the collection is complete
+      //else return the highest ID in the collection
+      const dlsQ = await DataLoadStatus.find( {collection_name })
+      if (dlsQ.length !== 0 && dlsQ[0].complete) {
+        resolve(-1);
+      }
+      const id = await getHighestID(collection_name);
+      resolve(id);
+    });
   }
 
-  updateDataStatus(collection, state) {
+  var newDataLoadStatus = function(collection_name, state) {
+    return new Promise(async (resolve, reject) => {
+      const DataDoc = new DataLoadStatus({
+        collection_name: collection_name,
+        complete: state
+      })
+      try {
+        const data = await DataDoc.save();
+        resolve(data);
+      } catch(err) {
+        console.error('error saving new DataLoadStatus!', err)
+        reject(err);
+      }
+    });
+  }
+
+  var updateDataLoadStatus = function(collection_name, state) {
+    return new Promise( async (resolve, reject) => {
+      try {
+        const data = await DataLoadStatus.updateOne({ collection_name }, {$set: {complete: state}})
+        resolve(data);
+      } catch(err) {
+        console.error('error updating DataLoadStatus!')
+        reject(err)
+      }
+    });
+  }
+
+  updateDataStatus = function(collection_name, state) {
     //mark the given collection complete!
+    return new Promise( async (resolve, reject) => {
+      const dlsQ = await DataLoadStatus.find( {collection_name })
+      if (dlsQ.length === 0) {
+        //create new collection
+        await newDataLoadStatus(collection_name, state)
+      } else {
+        //update the existing collection; will probabs never be called
+        await updateDataLoadStatus(collection_name, state)
+      }
+      resolve();
+    });
   }
 
 
@@ -76,10 +135,10 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-clean', (err, db
     return entries;
   }
 
-  var loadQuestionFileContents = function() {
+  var loadQuestionFileContents = function(highestQID) {
     return new Promise((resolve, reject) => {
-      if (!getDataStatus('questions')) {
-        var highestQID = getDataStatusID('questions');
+      console.log('highestQID is ', highestQID)
+      if (highestQID >= 0) {
         console.log('start loading questions');
         var loc = path.join(__dirname, './data/questions.csv')
         // var loc = path.join(__dirname, './data/testQuestions.csv')
@@ -117,10 +176,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-clean', (err, db
     });
   }
 
-  var loadAnswersFileContents = function() {
+  var loadAnswersFileContents = function(highestAID) {
     return new Promise((resolve, reject) => {
-      if (!getDataStatus('answers')) {
-        var highestAID = getDataStatusID('answers');
+      if (highestAID >= 0) {
         console.log('start reading answers');
         var loc = path.join(__dirname, './data/answers.csv')
         // var loc = path.join(__dirname, './data/testAnswers.csv')
@@ -150,15 +208,17 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-clean', (err, db
             resolve(brokenAnswers);
           })
         );
+      } else {
+        console.log('Answers have already been completed!')
+        resolve([])
       }
     });
   }
 
-  var loadAnswersPhotoFileContents = function() {
+  var loadAnswersPhotoFileContents = function(highestAPID) {
     console.log('begin reading in answers photos')
     return new Promise( (resolve, reject) => {
-      if (!getDataStatus('answersPhotos')) {
-        var highestAPID = getDataStatusID('answersPhotos');
+      if (highestAPID >= 0) {
         var loc = path.join(__dirname, './data/answers_photos.csv')
         // var loc = path.join(__dirname, './data/testAnswers_photos.csv')
         var brokenAnswersPhotos = [];
@@ -187,6 +247,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-clean', (err, db
             resolve(brokenAnswersPhotos)
           })
         );
+      } else {
+        console.log('Answers_Photos have already been completed!')
+        resolve([])
       }
     });
   }
@@ -279,9 +342,11 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-clean', (err, db
     try{
       console.log('SOF');
       if(dataLoad) {
-        //var timeStart = Math.floor(Date.now())
-        await loadQuestionFileContents();
-        await loadAnswersFileContents();
+        const highQID = await getDataStatusID('questions')
+        await loadQuestionFileContents(highQID);
+        const highAID = await getDataStatusID('answers')
+        await loadAnswersFileContents(highAID);
+        const highAPID = await getDataStatusID('answersPhotos')
         await loadAnswersPhotoFileContents();
         var timeEnd = Math.floor(Date.now());
         console.log('The Loading Process took ', timeEnd-timeStart, 'milliseconds to complete.')
