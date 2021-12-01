@@ -1,0 +1,20 @@
+config:
+  target: "localhost:3000/qa"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: Warm up
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 50
+      name: Ramp up load
+    - duration: 600
+      arrivalRate: 50
+      name: Sustained load
+  payload:
+    path: "testQuestions.csv"
+    fields:
+      - "id", "product_id", "body"," date_written", "asker_name", "asker_email", "reported", "helpful"
+
+scenarios:
+  - name: "Get a Question"

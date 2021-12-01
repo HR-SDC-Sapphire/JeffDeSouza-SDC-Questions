@@ -4,3 +4,4 @@ package-lock.json
 server/data/questions.csv
 server/data/answers.csv
 server/data/answers_photos.csv
+SDC-RSA-Keypair-01.pem
