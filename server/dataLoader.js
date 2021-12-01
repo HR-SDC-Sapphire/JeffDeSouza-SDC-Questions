@@ -9,6 +9,7 @@ const answersSchema = require('../database/models/answers.js')
 const Answer = mongoose.model('answers', answersSchema);
 const answersPhotosSchema = require('../database/models/answers_photos.js')
 const AnswersPhoto = mongoose.model('answers_photos', answersPhotosSchema);
+const DataLoadStatus = require('../database/models/data_load_status.js')
 var fs = require('fs')
 var es = require('event-stream');
 var path = require('path');
