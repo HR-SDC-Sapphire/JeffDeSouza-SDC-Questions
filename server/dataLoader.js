@@ -26,13 +26,16 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
       try {
         if (collection_name === 'questions') {
           const highestQuestion = await Question.find().sort({question_id: -1}).limit(1);
-          resolve(highestQuestion[0].question_id > 0 ? highestQuestion[0].question_id : 0)
+          var id = highestQuestion[0].question_id;
+          resolve(id > 0 ? id : 0)
         } else if (collection_name === 'answers') {
           const highestAnswer = await Answer.find().sort({id: -1}).limit(1);
-          resolve(highestAnswer[0].id > 0 ? highestAnswer[0].id : 0)
+          var id = highestAnswer[0].id;
+          resolve(id > 0 ? id : 0)
         } else if (collection_name === 'answersPhotos') {
           const highestAnswerPhoto = await AnswersPhoto.find().sort({id: -1}).limit(1);
-          resolve(highestAnswerPhoto[0].id > 0 ? highestAnswerPhoto[0].id : 0)
+          var id = highestAnswerPhoto[0].id;
+          resolve(id > 0 ? id : 0)
         }
       } catch(err) {
         console.error('there was an error getting the highest question ID', err)
