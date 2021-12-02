@@ -202,6 +202,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
             stream.pause();
             var entries = lineToEntries(line);
             if (highestAID < entries[0]) {
+              console.log('about to parse entries-0')
               if (Number.isInteger(parseInt(entries[0]))) {
                 console.log('about to await saveanswerintodb')
                 await saveAnswerIntoDB(entries);
