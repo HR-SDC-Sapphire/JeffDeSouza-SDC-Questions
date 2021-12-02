@@ -135,6 +135,18 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
           newQuestions.push(question);
         }
 
+        //SUGGESTION: Try to integrate this code
+        // return Promise.all(
+        //   questions.map(
+        //      ({question_id}) => Answer.find({question_id, reported: 0})
+        //          .then(answer => formatAnswers(
+        //              Array.from(answer)
+        //          )
+        //          .catch(err => throw new Error(err))
+        //   )
+        //  ).then( resolvedPromiseColletion => ... )
+        //  .catch( err => throw new Error(err) )
+
         //HELP DESK: WHY DIDN'T THIS WORK?
         // questions.forEach( async (question) => {
         //   const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
