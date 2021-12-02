@@ -215,6 +215,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
                 brokenAnswers.push(entries)
               }
             } else {
+              if (entries[0] > 190000)
+                console.log('line is', line, ' [vs]', highestAID);
+
               if (entries[0] % 10000 === 0) {
                 console.log('skipping answer', entries[0])
               }
