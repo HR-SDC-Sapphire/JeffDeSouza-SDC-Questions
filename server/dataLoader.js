@@ -91,14 +91,11 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
   }
 
   updateDataStatus = function(collection_name, state) {
-    //mark the given collection complete!
     return new Promise( async (resolve, reject) => {
       const dlsQ = await DataLoadStatus.find( {collection_name })
       if (dlsQ.length === 0) {
-        //create new collection
         await newDataLoadStatus(collection_name, state)
       } else {
-        //update the existing collection; will probabs never be called
         await updateDataLoadStatus(collection_name, state)
       }
       resolve();
@@ -200,34 +197,20 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
           .pipe(es.split())
           .pipe(es.mapSync(async (line)=> {
             stream.pause();
-
-            // if (parseInt(line.substring(0, 6))>190420)
-            //   console.log('pre entries line is', line)
-
             var entries = lineToEntries(line);
-
-            // if (entries[0] > 190000)
-              // console.log('line is', line, ' [vs]', highestAID);
-
             if (highestAID < entries[0]) {
-              //console.log('about to parse entries-0')
               if (Number.isInteger(parseInt(entries[0]))) {
-                //console.log('about to await saveanswerintodb')
                 await saveAnswerIntoDB(entries);
                 answerCount++;
               } else {
                 brokenAnswers.push(entries)
               }
             } else {
-              // if (entries[0] > 190000)
-              //   console.log('line is', line, ' [<=]', highestAID);
-
               if (entries[0] % 10000 === 0) {
                 console.log('skipping answer', entries[0])
               }
             }
             stream.resume();
-            //console.log('resumed after', entries[0])
           })
           .on('error', (err)=> {
             console.log('ERROR loading answer!', err);
@@ -320,7 +303,6 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
   }
 
   var saveAnswerIntoDB = function(rowEntries) {
-    //console.log('db saving answer', rowEntries[0])
     return new Promise(async (resolve, reject) => {
       var qid = rowEntries[1];
       var reportedVal = false;
@@ -339,12 +321,10 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
         last_updated: timeStart
       })
       try {
-        //console.log('about to await')
         const data = await answerDoc.save();
         if (parseInt(rowEntries[0])%1000 === 0) {
           console.log('finished saving answer ', rowEntries[0]);
         }
-        //console.log('it saved');
         resolve(data);
       } catch(err) {
         console.log('error Saving Answer!', err)
