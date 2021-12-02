@@ -201,13 +201,13 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
           .pipe(es.mapSync(async (line)=> {
             stream.pause();
 
-            if (parseInt(line.substring(0, 6))>190420)
-              console.log('pre entries line is', line)
+            // if (parseInt(line.substring(0, 6))>190420)
+            //   console.log('pre entries line is', line)
 
             var entries = lineToEntries(line);
 
-            if (entries[0] > 190000)
-              console.log('line is', line, ' [vs]', highestAID);
+            // if (entries[0] > 190000)
+              // console.log('line is', line, ' [vs]', highestAID);
 
             if (highestAID < entries[0]) {
               console.log('about to parse entries-0')
@@ -219,15 +219,15 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
                 brokenAnswers.push(entries)
               }
             } else {
-              if (entries[0] > 190000)
-                console.log('line is', line, ' [<=]', highestAID);
+              // if (entries[0] > 190000)
+              //   console.log('line is', line, ' [<=]', highestAID);
 
               if (entries[0] % 10000 === 0) {
                 console.log('skipping answer', entries[0])
               }
             }
             stream.resume();
-            console.log('resumed after', entries[0])
+            //console.log('resumed after', entries[0])
           })
           .on('error', (err)=> {
             console.log('ERROR loading answer!', err);
