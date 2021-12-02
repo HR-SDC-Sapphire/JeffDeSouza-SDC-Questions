@@ -26,10 +26,8 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
       try {
         if (collection_name === 'questions') {
           const highestQuestion = await Question.find().sort({question_id: -1}).limit(1);
-          console.log('ping 1')
           if (highestQuestion.length > 0) {
             var id = highestQuestion[0].question_id;
-            console.log('ping 2')
           }
           resolve(id > 0 ? id : 0)
         } else if (collection_name === 'answers') {
@@ -166,6 +164,10 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
               } else {
                 brokenQuestions.push(entries)
               }
+            } else {
+              if (entries[0] % 1000 === 0) {
+                console.log('skipping question', entries[0])
+              }
             }
             stream.resume();
           })
@@ -206,6 +208,10 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
               } else {
                 brokenAnswers.push(entries)
               }
+            } else {
+              if (entries[0] % 1000 === 0) {
+                console.log('skipping answer', entries[0])
+              }
             }
             stream.resume();
           })
@@ -244,6 +250,10 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
                 answerPhotoCount++;
               } else {
                 brokenAnswersPhotos.push(entries)
+              }
+            } else {
+              if (entries[0] % 1000 === 0) {
+                console.log('skipping answers_photo', entries[0])
               }
             }
             stream.resume();
