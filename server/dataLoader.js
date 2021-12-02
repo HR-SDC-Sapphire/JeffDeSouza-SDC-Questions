@@ -210,9 +210,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
               // console.log('line is', line, ' [vs]', highestAID);
 
             if (highestAID < entries[0]) {
-              console.log('about to parse entries-0')
+              //console.log('about to parse entries-0')
               if (Number.isInteger(parseInt(entries[0]))) {
-                console.log('about to await saveanswerintodb')
+                //console.log('about to await saveanswerintodb')
                 await saveAnswerIntoDB(entries);
                 answerCount++;
               } else {
@@ -339,12 +339,12 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
         last_updated: timeStart
       })
       try {
-        console.log('about to await')
+        //console.log('about to await')
         const data = await answerDoc.save();
         if (parseInt(rowEntries[0])%1000 === 0) {
           console.log('finished saving answer ', rowEntries[0]);
         }
-        console.log('it saved');
+        //console.log('it saved');
         resolve(data);
       } catch(err) {
         console.log('error Saving Answer!', err)
