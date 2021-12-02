@@ -320,7 +320,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
   }
 
   var saveAnswerIntoDB = function(rowEntries) {
-    console.log('db saving answer', rowEntries[0])
+    //console.log('db saving answer', rowEntries[0])
     return new Promise(async (resolve, reject) => {
       var qid = rowEntries[1];
       var reportedVal = false;
