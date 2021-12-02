@@ -203,7 +203,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
             var entries = lineToEntries(line);
 
             if (entries[0] > 190000)
-              console.log('entries is ', entries);
+              console.log('line is', line, ' [vs]', highestAID);
 
             if (highestAID < entries[0]) {
               console.log('about to parse entries-0')
