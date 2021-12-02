@@ -200,7 +200,9 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
           .pipe(es.split())
           .pipe(es.mapSync(async (line)=> {
             stream.pause();
+            if (entries[0] > 190000)
             console.log('line is ', line);
+
             var entries = lineToEntries(line);
             if (highestAID < entries[0]) {
               console.log('about to parse entries-0')
