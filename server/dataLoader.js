@@ -1,3 +1,5 @@
+"use strict";
+
 const express = require('express');
 const bodyParser = require('body-parser')
 const app = express();
@@ -49,7 +51,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
     });
   }
 
-  getDataStatusID = function(collection_name) {
+  var getDataStatusID = function(collection_name) {
     return new Promise( async (resolve, reject) => {
       //return -1 if the collection is complete
       //else return the highest ID in the collection
@@ -90,7 +92,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
     });
   }
 
-  updateDataStatus = function(collection_name, state) {
+  var updateDataStatus = function(collection_name, state) {
     return new Promise( async (resolve, reject) => {
       const dlsQ = await DataLoadStatus.find( {collection_name })
       if (dlsQ.length === 0) {
