@@ -125,42 +125,45 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexe
   }
 
   var attachAnswers = function(questions) {
-    return new Promise( async (resolve, reject) => {
-      try{
-        var newQuestions = [];
-        for (var k = 0; k < questions.length; k++) {
-          var question = questions[k];
-          const answers = await getAnswers(question)
-          question['answers'] = answers;
-          newQuestions.push(question);
-        }
+    // return new Promise( async (resolve, reject) => {
+    //   try{
+    //     var newQuestions = [];
+    //     for (var k = 0; k < questions.length; k++) {
+    //       var question = questions[k];
+    //       const answers = await getAnswers(question)
+    //       question['answers'] = answers;
+    //       newQuestions.push(question);
+    //     }
 
         //SUGGESTION: Try to integrate this code
-        // return Promise.all(
-        //   questions.map(
-        //      ({question_id}) => Answer.find({question_id, reported: 0})
-        //          .then(answer => formatAnswers(
-        //              Array.from(answer)
-        //          )
-        //          .catch(err => throw new Error(err))
-        //   )
-        //  ).then( resolvedPromiseColletion => ... )
-        //  .catch( err => throw new Error(err) )
+        //First look: Needs to be modified to accomodate pageCount
+        return Promise.all(
+          questions.map(
+             ({question_id}) => Answer.find({question_id, reported: 0})
+                 .then(answer => formatAnswers(
+                     Array.from(answer)
+                 )
+                 .catch(err => throw new Error(err))
+          )
+         ).then( resolvedPromiseColletion => ... )
+         .catch( err => throw new Error(err) )
 
-        //HELP DESK: WHY DIDN'T THIS WORK?
+         /*
+        // HELP DESK: WHY DIDN'T THIS WORK?
         // questions.forEach( async (question) => {
         //   const answersResult = await Answer.find({question_id: question.question_id, reported: 0});
         //   var answersArray = Array.from(answersResult);
         //   question['answers'] = formatAnswers(answersArray)
         //   newQuestions.push(question);
         // })
-        //IS IT BECAUSE HIGHER ORDERED FUNCTIONS DO NOT STOP - not even for async/await?
+        // IS IT BECAUSE HIGHER ORDERED FUNCTIONS DO NOT STOP - not even for async/await?
+        */
 
-        resolve(newQuestions);
-      } catch {
-        reject('There was an error attaching an answer to the question')
-      }
-    });
+    //     resolve(newQuestions);
+    //   } catch {
+    //     reject('There was an error attaching an answer to the question')
+    //   }
+    // });
   }
 
   app.get('/qa/questions', async (req, res) => {
