@@ -53,7 +53,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
     return new Promise( async (resolve, reject) => {
       //return -1 if the collection is complete
       //else return the highest ID in the collection
-      const dlsQ = await DataLoadStatus.find( {collection_name })
+      const dlsQ = await DataLoadStatus.find( { collection_name })
       if (dlsQ.length !== 0 && dlsQ[0].complete) {
         resolve(-1);
       }
@@ -218,6 +218,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
           })
           .on('end', () => {
             console.log('Finished Reading Answers!');
+            updateDataStatus('answers', true)
             console.log('Broken Answers were:', brokenAnswers)
             resolve(brokenAnswers);
           })
@@ -261,6 +262,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
           })
           .on('end', () => {
             console.log('Finished Reading Answers_photos!');
+            updateDataStatus('answersPhotos', true)
             console.log('Broken Answers_photos were:', brokenAnswersPhotos)
             resolve(brokenAnswersPhotos)
           })
@@ -365,6 +367,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
         const highAID = await getDataStatusID('answers')
         await loadAnswersFileContents(highAID);
         const highAPID = await getDataStatusID('answersPhotos')
+        console.log('highest APID is', highAPID)
         await loadAnswersPhotoFileContents();
         var timeEnd = Math.floor(Date.now());
         console.log('The Loading Process took ', timeEnd-timeStart, 'milliseconds to complete.')
