@@ -368,7 +368,7 @@ var questions = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)
         await loadAnswersFileContents(highAID);
         const highAPID = await getDataStatusID('answersPhotos')
         console.log('highest APID is', highAPID)
-        await loadAnswersPhotoFileContents();
+        await loadAnswersPhotoFileContents(highAPID);
         var timeEnd = Math.floor(Date.now());
         console.log('The Loading Process took ', timeEnd-timeStart, 'milliseconds to complete.')
         console.log('QuestionsCount: ', questionCount)
