@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser')
 const app = express();
 app.use(bodyParser.json())
-app.use(express.static('public'));
+app.use(express.static(__dirname + 'public'));
 const mongoose = require('mongoose');
 const questionsSchema = require('../database/models/questions.js')
 const Question = mongoose.model('questions', questionsSchema);
