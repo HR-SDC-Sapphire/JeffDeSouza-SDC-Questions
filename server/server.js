@@ -12,7 +12,7 @@ const AnswersPhoto = mongoose.model('answers_photos', answersPhotosSchema);
 const PORT = 3000;
 var timeStart = Date.now();
 
-var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-indexed', (err, db)=> {
+var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-test', (err, db)=> {
   console.log('connected to the db (SDC)!');
 
   var formatQuestions = function(questionsArray) {
