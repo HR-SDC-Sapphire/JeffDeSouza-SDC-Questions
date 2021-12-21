@@ -154,7 +154,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-test',
   }
 
   app.get('/qa/questions', async (req, res) => {
-    var timeStart = Date.now();
+    //var timeStart = Date.now();
     var pid = req.query.product_id;
     var page = req.query.page || 1; //ASSUMPTION: PAGE 0 == INVALID
     var count = req.query.count || 5;
@@ -171,7 +171,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-test',
       results = formatQuestions(results);
       var questionsWithAnswers = await attachAnswers(results)
       var questionObject = { product_id: pid, results: questionsWithAnswers }
-      console.log('Get Questions took ', Date.now() - timeStart, 'ms to complete.')
+      //console.log('Get Questions took ', Date.now() - timeStart, 'ms to complete.')
       res.status(200).json(questionObject);
     } catch (err) {
       res.json({error_message: err})
@@ -179,7 +179,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-test',
   });
 
   app.get('/qa/questions/:question_id/answers', async (req, res) => {
-    var timeStart = Date.now();
+    //var timeStart = Date.now();
     var question_id = req.params.question_id;
     var page = req.query.page || 1;
     var count = req.query.count || 5;
@@ -193,7 +193,7 @@ var questionsConnection = mongoose.connect('mongodb://localhost:27017/SDC-test',
     }
 
     const answers = await getAnswers({ question_id }, page, count)
-    console.log('Get Answers took ', Date.now() - timeStart, 'ms to complete.')
+    //console.log('Get Answers took ', Date.now() - timeStart, 'ms to complete.')
     res.status(200).json(answers);
   });
 
