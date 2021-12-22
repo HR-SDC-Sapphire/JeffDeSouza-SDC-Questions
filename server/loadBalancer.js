@@ -7,3 +7,5 @@ const PORT = 3000;
 app.get('/', (req, res) => {
   res.status(200).send('the request was received')
 })
+
+app.listen(PORT, ()=>{console.log(`listening on ${PORT} at ${new Date().toLocaleTimeString()}`)});
